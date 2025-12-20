@@ -93,6 +93,29 @@
             box-shadow: var(--shadow-md);
         }
 
+        .nav-btn-secondary {
+            background: white;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
         .nav-btn-primary {
             background: var(--primary);
             color: white;
@@ -291,6 +314,7 @@
             .flex-container { flex-direction: column; overflow-y: auto; }
             .selection-box { min-height: 350px; flex: none; }
             html, body { overflow: auto; height: auto; }
+            .nav-btn-secondary span { display: none; } /* Hide text on mobile for secondary btn */
         }
     </style>
 </head>
@@ -307,49 +331,61 @@
     <!-- Unified Login/Registration Modal -->
     <div id="loginModal" class="modal-overlay">
         <!-- Sign In View -->
-        <div class="login-card" id="signInForm">
+        <form class="login-card" id="signInForm" onsubmit="handleLoginSubmit(event)">
             <h3 id="loginTitle" style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Session Required</h3>
             <p id="loginSubtitle" style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Please log in to continue using the converter.</p>
             <div style="margin-bottom: 1.25rem;">
-                <label>Email Address</label>
-                <input type="email" id="loginUser" placeholder="yourname@example.com">
+                <label for="loginUser">Email or Username</label>
+                <input type="text" id="loginUser" placeholder="Email or 'admin'" required>
             </div>
             <div style="margin-bottom: 1.5rem;">
-                <label>Password</label>
-                <input type="password" id="loginPass" placeholder="••••••••">
+                <label for="loginPass">Password</label>
+                <input type="password" id="loginPass" placeholder="••••••••" required>
             </div>
-            <button class="btn-primary" id="btnDoLogin">Sign In</button>
+            <button type="submit" class="btn-primary" id="btnDoLogin">Sign In</button>
             
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
                 Don't have an account? <span class="text-link" id="btnGoToRegister">Create Account</span>
             </div>
 
-            <button class="icon-btn" id="btnCloseLogin" style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;">Cancel</button>
+            <button type="button" class="icon-btn" id="btnCloseLogin" style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;">Cancel</button>
             <p id="loginError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;">Authentication failed.</p>
-        </div>
+        </form>
 
         <!-- Registration View -->
-        <div class="login-card" id="signUpForm" style="display: none;">
+        <form class="login-card" id="signUpForm" style="display: none;" onsubmit="handleRegisterSubmit(event)">
             <h3 style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Create Account</h3>
             <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Join the Manipuri Lingual Bridge. New members receive a 5-day free trial. Subscribe to continue access beyond the trial period.</p>
             <div style="margin-bottom: 1.25rem;">
-                <label>Full Name</label>
-                <input type="text" id="regName" placeholder="e.g. John Doe">
+                <label for="regName">Full Name</label>
+                <input type="text" id="regName" placeholder="e.g. John Doe" required>
             </div>
             <div style="margin-bottom: 1.25rem;">
-                <label>Email Address</label>
-                <input type="email" id="regEmail" placeholder="yourname@example.com">
+                <label for="regEmail">Email Address</label>
+                <input type="email" id="regEmail" placeholder="yourname@example.com" required>
             </div>
             <div style="margin-bottom: 1.5rem;">
-                <label>Create Password</label>
-                <input type="password" id="regPass" placeholder="Minimum 8 characters">
+                <label for="regPass">Create Password</label>
+                <input type="password" id="regPass" placeholder="Minimum 8 characters" required minlength="8">
             </div>
-            <button class="btn-primary" id="btnDoRegister">Register Now</button>
+            <button type="submit" class="btn-primary" id="btnDoRegister">Register Now</button>
             
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
                 Already have an account? <span class="text-link" id="btnGoToLogin">Back to Sign In</span>
             </div>
             <p id="regError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;"></p>
+        </form>
+    </div>
+
+    <!-- Development Notice Modal -->
+    <div id="noticeModal" class="modal-overlay">
+        <div class="login-card" style="text-align: center;">
+            <div style="background: var(--accent); color: var(--primary); width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; font-weight: 800; color: var(--text-main);">Feature Coming Soon</h3>
+            <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">This feature will be available soon. We’re working on improvements to provide the best conversion experience.</p>
+            <button class="btn-primary" id="btnCloseNotice">Close</button>
         </div>
     </div>
 
@@ -376,6 +412,10 @@
             <p class="tagline">Manipuri Lingual bridge</p>
         </div>
         <div style="grid-column: 3; display: flex; justify-content: flex-end; gap: 0.75rem; align-items: center;">
+            <button class="nav-btn-secondary" id="btnImageConverter" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Image/Pdf Converter</span>
+            </button>
             <button class="icon-btn" id="btnSettings" title="Admin Control" style="display: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -449,6 +489,7 @@
             viewMain: document.getElementById('viewMain'),
             viewSettings: document.getElementById('viewSettings'),
             loginModal: document.getElementById('loginModal'),
+            noticeModal: document.getElementById('noticeModal'),
             signInForm: document.getElementById('signInForm'),
             signUpForm: document.getElementById('signUpForm'),
             loading: document.getElementById('loading'),
@@ -466,9 +507,19 @@
             displayRemainingDays: document.getElementById('displayRemainingDays'),
             btnSignOut: document.getElementById('btnSignOut'),
             btnSettings: document.getElementById('btnSettings'),
+            btnImageConverter: document.getElementById('btnImageConverter'),
             btnBack: document.getElementById('btnBack'),
-            dictPasscode: document.getElementById('dictPasscode')
+            dictPasscode: document.getElementById('dictPasscode'),
+            btnCloseNotice: document.getElementById('btnCloseNotice')
         };
+
+        // --- PREVENT RELOAD/REFRESH LOGIC ---
+        window.addEventListener('beforeunload', function (e) {
+            if (els.leftText.value.trim() !== "" || isLoggedIn) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        });
 
         function showView(viewName) {
             els.viewMain.classList.remove('active');
@@ -481,10 +532,12 @@
                     els.btnTopSignIn.style.display = 'none';
                     els.authenticatedUser.style.display = 'flex';
                     els.btnSettings.style.display = 'flex';
+                    els.btnImageConverter.style.display = 'flex';
                 } else {
                     els.btnTopSignIn.style.display = 'flex';
                     els.authenticatedUser.style.display = 'none';
                     els.btnSettings.style.display = 'none';
+                    els.btnImageConverter.style.display = 'none';
                 }
             } else if (viewName === 'settings') {
                 els.viewSettings.classList.add('active');
@@ -492,6 +545,7 @@
                 els.btnTopSignIn.style.display = 'none';
                 els.authenticatedUser.style.display = 'none';
                 els.btnSettings.style.display = 'none';
+                els.btnImageConverter.style.display = 'none';
             }
         }
 
@@ -532,6 +586,16 @@
         };
 
         els.btnSettings.onclick = () => { showView('settings'); };
+        
+        // --- IMAGE CONVERTER BUTTON LOGIC ---
+        els.btnImageConverter.onclick = () => {
+            els.noticeModal.style.display = 'flex';
+        };
+        
+        els.btnCloseNotice.onclick = () => {
+            els.noticeModal.style.display = 'none';
+        };
+
         els.btnSignOut.onclick = () => {
             handleSignOut();
         };
@@ -542,13 +606,18 @@
             els.displayFullName.textContent = "Guest";
             els.displayRemainingDays.textContent = "";
             showView('main');
-            startAutoLockTimer();
+            
+            els.loginTitle.textContent = "Sign In";
+            els.loginSubtitle.textContent = "You have been signed out. Please log in again to access your account.";
+            els.loginModal.style.display = 'flex';
+            document.getElementById('btnCloseLogin').style.display = 'block';
         }
 
         document.getElementById('btnCloseLogin').onclick = () => { els.loginModal.style.display = 'none'; };
         els.btnBack.onclick = () => { showView('main'); };
 
-        document.getElementById('btnDoRegister').onclick = async () => {
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
             const name = document.getElementById('regName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const pass = document.getElementById('regPass').value.trim();
@@ -595,15 +664,22 @@
                 btn.innerText = "Register Now";
                 btn.disabled = false;
             }
-        };
+        }
 
-        document.getElementById('btnDoLogin').onclick = async () => {
-            const user = document.getElementById('loginUser').value;
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('btnDoLogin');
             const err = document.getElementById('loginError');
 
             if(!user || !pass) return;
+
+            if (user.toLowerCase() !== 'admin' && !user.includes('@')) {
+                err.textContent = "Please enter a valid email or 'admin'.";
+                err.style.display = 'block';
+                return;
+            }
 
             btn.innerText = "Verifying...";
             btn.disabled = true;
@@ -654,7 +730,7 @@
                 btn.innerText = "Sign In";
                 btn.disabled = false;
             }
-        };
+        }
 
         function convert() {
             let text = els.leftText.value;
