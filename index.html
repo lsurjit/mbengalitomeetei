@@ -278,6 +278,13 @@
             flex-shrink: 0;
         }
 
+        .footer-update-msg {
+            color: #ef4444;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
         @media (max-width: 768px) {
             header { grid-template-columns: 1fr 1fr; padding: 1rem; }
             .brand { grid-column: 1 / span 2; order: -1; margin-bottom: 0.5rem; }
@@ -424,7 +431,10 @@
         </div>
     </main>
 
-    <footer>&copy;2025 Manipur Script Bridge. Designed and developed by L. S. S., for any queries, please contact us at: surcellworld@gmail.com</footer>
+    <footer>
+        <marquee class="footer-update-msg" direction="left">We are currently working on this webpage and updating it from time to time to improve your experience.</marquee>
+        &copy; 2025 Manipur Script Bridge. Designed and developed by L. S. S., for any queries, please contact us at: surcellworld@gmail.com
+    </footer>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4buIkwDd38HWSF3WBhJMQFawRHhLR4QH5t1tswCn6nxywqQ3Ffueg2nt5LJgBdXpj/exec"; 
@@ -740,6 +750,4 @@
         window.onload = load;
     </script>
 </body>
-
 </html>
-
