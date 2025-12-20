@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Script Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --accent: #eff6ff;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body { 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-main); 
+            background-color: var(--bg-main);
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-size: 100% 100%;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(248, 250, 252, 0.96);
+            z-index: -1;
+        }
+
+        header {
+            padding: 1rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .brand { text-align: center; }
+        .brand h1 { 
+            font-size: 1.5rem; 
+            font-weight: 800; 
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, var(--primary), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2px;
+        }
+        .tagline { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .icon-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.6rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .icon-btn:hover { 
+            border-color: var(--primary); 
+            color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .user-days {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--accent);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .view { flex: 1; display: none; flex-direction: column; min-height: 0; }
+        .view.active { display: flex; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container { padding: 1.5rem; width: 100%; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        .flex-container { display: flex; gap: 1.5rem; flex: 1; min-height: 0; }
+
+        .selection-box {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 0;
+            transition: box-shadow 0.3s;
+        }
+
+        .selection-box:focus-within {
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        label { 
+            display: block; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em;
+        }
+
+        select, textarea, input { 
+            width: 100%; 
+            padding: 0.875rem 1.25rem; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            background-color: var(--bg-main); 
+            outline: none; 
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        select:focus, textarea:focus, input:focus {
+            background-color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        textarea { flex: 1; resize: none; font-size: 1.15rem; line-height: 1.6; color: var(--text-main); }
+
+        .sync-status {
+            position: fixed;
+            bottom: 4rem;
+            right: 2rem;
+            background: var(--text-main);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 100;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sync-status.hidden { opacity: 0; transform: translateY(20px) scale(0.9); pointer-events: none; }
+
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+
+        .btn-primary { 
+            width: 100%; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 1rem; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .text-link {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .text-link:hover { color: var(--primary-hover); text-decoration: underline; }
+
+        footer { 
+            text-align: center; 
+            padding: 0.75rem; 
+            font-size: 0.75rem; 
+            font-weight: 500;
+            color: var(--text-muted); 
+            border-top: 1px solid var(--border); 
+            background: rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            header { grid-template-columns: 1fr 1fr; padding: 1rem; }
+            .brand { grid-column: 1 / span 2; order: -1; margin-bottom: 0.5rem; }
+            .flex-container { flex-direction: column; overflow-y: auto; }
+            .selection-box { min-height: 350px; flex: none; }
+            html, body { overflow: auto; height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading" class="sync-status">
+        <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity: 0.25;"></circle>
+            <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor"></path>
+        </svg>
+        <span id="loadingText">Syncing Mappings...</span>
+    </div>
+
+    <!-- Unified Login/Registration Modal -->
+    <div id="loginModal" class="modal-overlay">
+        <!-- Sign In View -->
+        <div class="login-card" id="signInForm">
+            <h3 id="loginTitle" style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Session Required</h3>
+            <p id="loginSubtitle" style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Please log in to continue using the converter.</p>
+            <div style="margin-bottom: 1.25rem;">
+                <label>Email Address</label>
+                <input type="email" id="loginUser" placeholder="yourname@example.com">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="••••••••">
+            </div>
+            <button class="btn-primary" id="btnDoLogin">Sign In</button>
+            
+            <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+                Don't have an account? <span class="text-link" id="btnGoToRegister">Create Account</span>
+            </div>
+
+            <button class="icon-btn" id="btnCloseLogin" style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;">Cancel</button>
+            <p id="loginError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;">Authentication failed.</p>
+        </div>
+
+        <!-- Registration View -->
+        <div class="login-card" id="signUpForm" style="display: none;">
+            <h3 style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Create Account</h3>
+            <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Join the Manipuri Lingual Bridge. New members receive a 5-day free trial. Subscribe to continue access beyond the trial period.</p>
+            <div style="margin-bottom: 1.25rem;">
+                <label>Full Name</label>
+                <input type="text" id="regName" placeholder="e.g. John Doe">
+            </div>
+            <div style="margin-bottom: 1.25rem;">
+                <label>Email Address</label>
+                <input type="email" id="regEmail" placeholder="yourname@example.com">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label>Create Password</label>
+                <input type="password" id="regPass" placeholder="Minimum 8 characters">
+            </div>
+            <button class="btn-primary" id="btnDoRegister">Register Now</button>
+            
+            <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+                Already have an account? <span class="text-link" id="btnGoToLogin">Back to Sign In</span>
+            </div>
+            <p id="regError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;"></p>
+        </div>
+    </div>
+
+    <header>
+        <div style="grid-column: 1; display: flex; align-items: center; gap: 0.75rem;">
+            <button class="icon-btn" id="btnBack" style="display: none;">&larr; Back</button>
+            <button class="nav-btn-primary" id="btnTopSignIn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                Sign In
+            </button>
+            
+            <div id="authenticatedUser" style="display: none;" class="user-badge">
+                <div style="display: flex; flex-direction: column;">
+                    <span id="displayFullName" class="user-name">Loading...</span>
+                    <span id="displayRemainingDays" class="user-days">0 Days Left</span>
+                </div>
+                <button class="icon-btn" id="btnSignOut" title="Sign Out" style="padding: 0.3rem; border: none; background: transparent; box-shadow: none; color: #ef4444;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="brand" style="grid-column: 2;">
+            <h1>Script Converter</h1>
+            <p class="tagline">Manipuri Lingual bridge</p>
+        </div>
+        <div style="grid-column: 3; display: flex; justify-content: flex-end; gap: 0.75rem; align-items: center;">
+            <button class="icon-btn" id="btnSettings" title="Admin Control" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main id="viewMain" class="view active">
+        <div class="container">
+            <div class="flex-container">
+                <div class="selection-box">
+                    <label>Source Language</label>
+                    <select id="leftScript">
+                        <option value="Bangala" selected>Manipuri Bangala (Input)</option>
+                        <option value="Meetei Mayek">Meetei Mayek (Input)</option>
+                    </select>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 0.5rem;">
+                        <label id="inputLabel" style="margin-bottom: 0;">Input Editor</label>
+                    </div>
+                    <textarea id="leftText" placeholder="Type or paste your text here..."></textarea>
+                </div>
+                
+                <div class="selection-box">
+                    <label>Target Language</label>
+                    <select id="rightScript">
+                        <option value="Meetei Mayek" selected>Meetei Mayek (Output)</option>
+                        <option value="Bangala">Manipuri Bangala (Output)</option>
+                    </select>
+                    <label id="outputLabel" style="margin-top: 0.5rem;">Converted Result</label>
+                    <textarea id="rightText" readonly placeholder="The converted output will appear here automatically..."></textarea>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="viewSettings" class="view" style="overflow-y: auto;">
+        <div class="container">
+            <div class="settings-page" style="max-width: 700px; margin: 2rem auto; width: 100%; background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem; box-shadow: var(--shadow-lg);">
+                <h2 style="font-weight: 800; letter-spacing: -0.01em; margin-bottom: 0.5rem;">Data Dictionary</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">Manage mapping rules in "Mappings" sheet.</p>
+                <div style="background: var(--accent); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(79, 70, 229, 0.1);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                        <div><label>Bangala Header</label><input type="text" id="bangalaInput" placeholder="কা"></div>
+                        <div><label>Meetei Mayek Header</label><input type="text" id="meeteiInput" placeholder="ꯀ"></div>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label>Admin Passcode</label>
+                        <input type="password" id="dictPasscode" placeholder="Enter authorize update">
+                    </div>
+                    <button class="btn-primary" id="btnDataUpdate">Add to Dictionary</button>
+                </div>
+                <p id="statusMsg" style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Status: Active</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>&copy;2025 Manipur Script Bridge. Designed and developed by L. S. S.contact EmailID: surcellworld@gmail.com</footer>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4buIkwDd38HWSF3WBhJMQFawRHhLR4QH5t1tswCn6nxywqQ3Ffueg2nt5LJgBdXpj/exec"; 
+        const ADMIN_PASSCODE = "2025";
+        
+        let mappingData = [];
+        let isLoggedIn = false;
+        let currentUserData = null;
+        let countdownTimer = null;
+
+        const els = {
+            viewMain: document.getElementById('viewMain'),
+            viewSettings: document.getElementById('viewSettings'),
+            loginModal: document.getElementById('loginModal'),
+            signInForm: document.getElementById('signInForm'),
+            signUpForm: document.getElementById('signUpForm'),
+            loading: document.getElementById('loading'),
+            loadingText: document.getElementById('loadingText'),
+            leftText: document.getElementById('leftText'),
+            rightText: document.getElementById('rightText'),
+            statusMsg: document.getElementById('statusMsg'),
+            leftScript: document.getElementById('leftScript'),
+            rightScript: document.getElementById('rightScript'),
+            loginTitle: document.getElementById('loginTitle'),
+            loginSubtitle: document.getElementById('loginSubtitle'),
+            btnTopSignIn: document.getElementById('btnTopSignIn'),
+            authenticatedUser: document.getElementById('authenticatedUser'),
+            displayFullName: document.getElementById('displayFullName'),
+            displayRemainingDays: document.getElementById('displayRemainingDays'),
+            btnSignOut: document.getElementById('btnSignOut'),
+            btnSettings: document.getElementById('btnSettings'),
+            btnBack: document.getElementById('btnBack'),
+            dictPasscode: document.getElementById('dictPasscode')
+        };
+
+        function showView(viewName) {
+            els.viewMain.classList.remove('active');
+            els.viewSettings.classList.remove('active');
+            
+            if (viewName === 'main') {
+                els.viewMain.classList.add('active');
+                els.btnBack.style.display = 'none';
+                if (isLoggedIn) {
+                    els.btnTopSignIn.style.display = 'none';
+                    els.authenticatedUser.style.display = 'flex';
+                    els.btnSettings.style.display = 'flex';
+                } else {
+                    els.btnTopSignIn.style.display = 'flex';
+                    els.authenticatedUser.style.display = 'none';
+                    els.btnSettings.style.display = 'none';
+                }
+            } else if (viewName === 'settings') {
+                els.viewSettings.classList.add('active');
+                els.btnBack.style.display = 'flex';
+                els.btnTopSignIn.style.display = 'none';
+                els.authenticatedUser.style.display = 'none';
+                els.btnSettings.style.display = 'none';
+            }
+        }
+
+        document.getElementById('btnGoToRegister').onclick = () => {
+            els.signInForm.style.display = 'none';
+            els.signUpForm.style.display = 'block';
+        };
+        document.getElementById('btnGoToLogin').onclick = () => {
+            els.signUpForm.style.display = 'none';
+            els.signInForm.style.display = 'block';
+        };
+
+        function startAutoLockTimer() {
+            if (isLoggedIn) return;
+            let timeLeft = 30; 
+            if (countdownTimer) clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    if (!isLoggedIn) showTimedLogin();
+                }
+            }, 1000);
+        }
+
+        function showTimedLogin() {
+            els.loginTitle.textContent = "Trial Period Ended";
+            els.loginSubtitle.textContent = "Your preview has expired. Please sign in or register to continue.";
+            els.loginModal.style.display = 'flex';
+            document.getElementById('btnCloseLogin').style.display = 'none';
+        }
+
+        els.btnTopSignIn.onclick = () => {
+            els.loginTitle.textContent = "Sign In";
+            els.loginSubtitle.textContent = "Access your account to manage dictionaries and bypass trial limits.";
+            els.loginModal.style.display = 'flex';
+            document.getElementById('btnCloseLogin').style.display = 'block';
+        };
+
+        els.btnSettings.onclick = () => { showView('settings'); };
+        els.btnSignOut.onclick = () => {
+            handleSignOut();
+        };
+
+        function handleSignOut() {
+            isLoggedIn = false;
+            currentUserData = null;
+            els.displayFullName.textContent = "Guest";
+            els.displayRemainingDays.textContent = "";
+            showView('main');
+            startAutoLockTimer();
+        }
+
+        document.getElementById('btnCloseLogin').onclick = () => { els.loginModal.style.display = 'none'; };
+        els.btnBack.onclick = () => { showView('main'); };
+
+        document.getElementById('btnDoRegister').onclick = async () => {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            const btn = document.getElementById('btnDoRegister');
+            const err = document.getElementById('regError');
+
+            if(!name || !email || pass.length < 8) {
+                err.textContent = "Check fields: Password must be 8+ chars.";
+                err.style.display = 'block';
+                return;
+            }
+
+            btn.innerText = "Connecting...";
+            btn.disabled = true;
+            err.style.display = 'none';
+
+            const payload = { 
+                action: 'register', 
+                sheetName: 'Registration',
+                data: { "Full name": name, "Email": email, "password": pass, "end date time": new Date().toLocaleString() }
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.success || result.status === "success") {
+                    alert(`Welcome ${name}! Please sign in.`);
+                    els.signUpForm.style.display = 'none';
+                    els.signInForm.style.display = 'block';
+                    document.getElementById('loginUser').value = email;
+                } else {
+                    err.textContent = result.message || "Registration failed.";
+                    err.style.display = 'block';
+                }
+            } catch (e) {
+                err.textContent = "Connection error.";
+                err.style.display = 'block';
+            } finally {
+                btn.innerText = "Register Now";
+                btn.disabled = false;
+            }
+        };
+
+        document.getElementById('btnDoLogin').onclick = async () => {
+            const user = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+            const btn = document.getElementById('btnDoLogin');
+            const err = document.getElementById('loginError');
+
+            if(!user || !pass) return;
+
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+            err.style.display = 'none';
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'login', user, password: pass })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    const tempUserData = result.userData || { "Full name": "Member" };
+                    const expiryStr = tempUserData["end date time"];
+                    const expiryDate = new Date(expiryStr);
+                    const now = new Date();
+                    const diffTime = expiryDate - now;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays <= 0) {
+                        alert("Your premium subscription has expired. Please contact the administrator.");
+                        els.loginTitle.textContent = "Account Expired";
+                        els.loginSubtitle.textContent = "Your premium subscription has ended. Please contact support.";
+                        els.loginModal.style.display = 'flex';
+                        document.getElementById('btnCloseLogin').style.display = 'none';
+                        btn.innerText = "Sign In";
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    isLoggedIn = true;
+                    currentUserData = tempUserData;
+                    els.displayFullName.textContent = currentUserData["Full name"] || "User";
+                    els.displayRemainingDays.textContent = `${diffDays} Days Left`;
+                    
+                    if (countdownTimer) clearInterval(countdownTimer);
+                    els.loginModal.style.display = 'none';
+                    showView('main'); 
+                } else {
+                    err.textContent = "Invalid credentials.";
+                    err.style.display = 'block';
+                }
+            } catch (e) {
+                err.textContent = "Login connection failed.";
+                err.style.display = 'block';
+            } finally {
+                btn.innerText = "Sign In";
+                btn.disabled = false;
+            }
+        };
+
+        function convert() {
+            let text = els.leftText.value;
+            if (!text) { els.rightText.value = ""; return; }
+            if (!Array.isArray(mappingData)) return;
+
+            const from = els.leftScript.value;
+            const sourceKey = from;
+            const targetKey = from === 'Bangala' ? 'Meetei Mayek' : 'Bangala';
+
+            const sorted = [...mappingData].sort((a,b) => {
+                const lenA = a[sourceKey] ? String(a[sourceKey]).length : 0;
+                const lenB = b[sourceKey] ? String(b[sourceKey]).length : 0;
+                return lenB - lenA;
+            });
+
+            sorted.forEach(m => {
+                const srcVal = String(m[sourceKey] || "");
+                const tgtVal = String(m[targetKey] || "");
+                if (srcVal) text = text.split(srcVal).join(tgtVal);
+            });
+            els.rightText.value = text;
+        }
+
+        els.leftText.oninput = convert;
+        els.leftScript.onchange = convert;
+        els.rightScript.onchange = convert;
+
+        async function load() {
+            try {
+                els.loading.classList.remove('hidden');
+                const r = await fetch(SCRIPT_URL + "?sheet=Mappings"); 
+                const result = await r.json();
+                mappingData = Array.isArray(result) ? result : [];
+                els.loading.classList.add('hidden');
+                startAutoLockTimer();
+            } catch (e) {
+                console.error("Load failed:", e);
+                mappingData = [];
+                els.loadingText.textContent = "Offline Mode";
+                setTimeout(() => els.loading.classList.add('hidden'), 2000);
+                startAutoLockTimer();
+            }
+        }
+
+        document.getElementById('btnDataUpdate').onclick = async () => {
+            const b = document.getElementById('bangalaInput').value.trim();
+            const m = document.getElementById('meeteiInput').value.trim();
+            const code = els.dictPasscode.value.trim();
+            
+            if(!b || !m) {
+                els.statusMsg.innerText = "Please fill all fields.";
+                els.statusMsg.style.color = "#ef4444";
+                return;
+            }
+
+            if (code !== ADMIN_PASSCODE) {
+                els.statusMsg.innerText = "Incorrect Admin Passcode.";
+                els.statusMsg.style.color = "#ef4444";
+                return;
+            }
+
+            const btn = document.getElementById('btnDataUpdate');
+            btn.disabled = true;
+            els.statusMsg.innerText = "Updating Sheet...";
+            els.statusMsg.style.color = "var(--text-muted)";
+            
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ 
+                        action: 'update', 
+                        sheetName: 'Mappings',
+                        data: { "Bangala": b, "Meetei Mayek": m } 
+                    })
+                });
+                mappingData.push({"Bangala": b, "Meetei Mayek": m});
+                els.statusMsg.innerText = "Successfully Added.";
+                els.statusMsg.style.color = "#10b981";
+                document.getElementById('bangalaInput').value = "";
+                document.getElementById('meeteiInput').value = "";
+                els.dictPasscode.value = "";
+                convert(); 
+            } catch (e) {
+                els.statusMsg.innerText = "Sync Error.";
+                els.statusMsg.style.color = "#ef4444";
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.onload = load;
+    </script>
+</body>
+</html>
