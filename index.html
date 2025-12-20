@@ -9,6 +9,8 @@
         :root {
             --primary: #4f46e5;
             --primary-hover: #4338ca;
+            --secondary: #10b981;
+            --secondary-hover: #059669;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --bg-main: #f8fafc;
@@ -107,6 +109,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            white-space: nowrap;
         }
 
         .nav-btn-secondary:hover {
@@ -130,6 +133,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            white-space: nowrap;
         }
 
         .nav-btn-primary:hover {
@@ -281,6 +285,51 @@
         .btn-primary:active { transform: translateY(0); }
         .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
+        /* NEW: Buy Plans Button Style */
+        .btn-buy-plans {
+            width: 100%;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-buy-plans:hover {
+            background: var(--secondary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+        }
+
+        .form-divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-divider::before, .form-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .form-divider span { padding: 0 12px; }
+
         .text-link {
             color: var(--primary);
             font-weight: 700;
@@ -309,12 +358,12 @@
         }
 
         @media (max-width: 768px) {
-            header { grid-template-columns: 1fr 1fr; padding: 1rem; }
-            .brand { grid-column: 1 / span 2; order: -1; margin-bottom: 0.5rem; }
+            header { grid-template-columns: 1fr; padding: 1rem; height: auto; gap: 1rem; }
+            .brand { grid-column: 1; order: -1; }
+            .auth-actions { justify-content: center !important; }
             .flex-container { flex-direction: column; overflow-y: auto; }
             .selection-box { min-height: 350px; flex: none; }
             html, body { overflow: auto; height: auto; }
-            .nav-btn-secondary span { display: none; } /* Hide text on mobile for secondary btn */
         }
     </style>
 </head>
@@ -334,6 +383,15 @@
         <form class="login-card" id="signInForm" onsubmit="handleLoginSubmit(event)">
             <h3 id="loginTitle" style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Session Required</h3>
             <p id="loginSubtitle" style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Please log in to continue using the converter.</p>
+            
+            <!-- Buy Plans Button for Trial Ended -->
+            <button type="button" class="btn-buy-plans" onclick="showNotice()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                Buy Subscription Plan
+            </button>
+
+            <div class="form-divider"><span>Or sign in to account</span></div>
+
             <div style="margin-bottom: 1.25rem;">
                 <label for="loginUser">Email or Username</label>
                 <input type="text" id="loginUser" placeholder="Email or 'admin'" required>
@@ -345,17 +403,26 @@
             <button type="submit" class="btn-primary" id="btnDoLogin">Sign In</button>
             
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-                Don't have an account? <span class="text-link" id="btnGoToRegister">Create Account</span>
+                Don't have an account? <span class="text-link" id="btnGoToRegisterText">Create Account</span>
             </div>
-
-            <button type="button" class="icon-btn" id="btnCloseLogin" style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;">Cancel</button>
+  
+            <button type="button" class="icon-btn" id="btnCloseLogin" disabled style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;"></button>
             <p id="loginError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;">Authentication failed.</p>
         </form>
 
         <!-- Registration View -->
         <form class="login-card" id="signUpForm" style="display: none;" onsubmit="handleRegisterSubmit(event)">
             <h3 style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Create Account</h3>
-            <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Join the Manipuri Lingual Bridge. New members receive a 5-day free trial. Subscribe to continue access beyond the trial period.</p>
+            <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Join the Manipuri Lingual Bridge. New members get a 2-day free trial.</p>
+            
+            <!-- Buy Plans Button for Registration -->
+            <button type="button" class="btn-buy-plans" onclick="showNotice()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                Buy Subscription Plan
+            </button>
+
+            <div class="form-divider"><span>Or register for trial</span></div>
+
             <div style="margin-bottom: 1.25rem;">
                 <label for="regName">Full Name</label>
                 <input type="text" id="regName" placeholder="e.g. John Doe" required>
@@ -371,7 +438,7 @@
             <button type="submit" class="btn-primary" id="btnDoRegister">Register Now</button>
             
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-                Already have an account? <span class="text-link" id="btnGoToLogin">Back to Sign In</span>
+                Already have an account? <span class="text-link" id="btnGoToLoginText">Back to Sign In</span>
             </div>
             <p id="regError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;"></p>
         </form>
@@ -384,7 +451,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             </div>
             <h3 style="margin-bottom: 0.5rem; font-weight: 800; color: var(--text-main);">Feature Coming Soon</h3>
-            <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">This feature will be available soon. We’re working on improvements to provide the best conversion experience.</p>
+            <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">Subscription plans will be available soon. Please contact support to purchase manually.</p>
             <button class="btn-primary" id="btnCloseNotice">Close</button>
         </div>
     </div>
@@ -392,10 +459,17 @@
     <header>
         <div style="grid-column: 1; display: flex; align-items: center; gap: 0.75rem;">
             <button class="icon-btn" id="btnBack" style="display: none;">&larr; Back</button>
-            <button class="nav-btn-primary" id="btnTopSignIn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                Sign In
-            </button>
+            
+            <div id="guestActions" style="display: flex; gap: 0.75rem; align-items: center;" class="auth-actions">
+                <button class="nav-btn-primary" id="btnTopSignIn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    Sign In
+                </button>
+                <button class="nav-btn-secondary" id="btnTopRegister">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+                    Register
+                </button>
+            </div>
             
             <div id="authenticatedUser" style="display: none;" class="user-badge">
                 <div style="display: flex; flex-direction: column;">
@@ -501,7 +575,9 @@
             rightScript: document.getElementById('rightScript'),
             loginTitle: document.getElementById('loginTitle'),
             loginSubtitle: document.getElementById('loginSubtitle'),
+            guestActions: document.getElementById('guestActions'),
             btnTopSignIn: document.getElementById('btnTopSignIn'),
+            btnTopRegister: document.getElementById('btnTopRegister'),
             authenticatedUser: document.getElementById('authenticatedUser'),
             displayFullName: document.getElementById('displayFullName'),
             displayRemainingDays: document.getElementById('displayRemainingDays'),
@@ -510,14 +586,23 @@
             btnImageConverter: document.getElementById('btnImageConverter'),
             btnBack: document.getElementById('btnBack'),
             dictPasscode: document.getElementById('dictPasscode'),
-            btnCloseNotice: document.getElementById('btnCloseNotice')
+            btnCloseNotice: document.getElementById('btnCloseNotice'),
+            btnGoToRegisterText: document.getElementById('btnGoToRegisterText'),
+            btnGoToLoginText: document.getElementById('btnGoToLoginText')
         };
 
-        // --- PREVENT RELOAD/REFRESH LOGIC ---
-        window.addEventListener('beforeunload', function (e) {
-            if (els.leftText.value.trim() !== "" || isLoggedIn) {
+        // --- PREVENT RELOAD / REFRESH SYSTEM ---
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F5' || e.keyCode === 116) e.preventDefault();
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.keyCode === 82)) e.preventDefault();
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (isLoggedIn || els.leftText.value.trim().length > 0) {
+                const message = 'You have active progress or a session. Reloading will reset the app state.';
                 e.preventDefault();
-                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                e.returnValue = message;
+                return message;
             }
         });
 
@@ -529,12 +614,12 @@
                 els.viewMain.classList.add('active');
                 els.btnBack.style.display = 'none';
                 if (isLoggedIn) {
-                    els.btnTopSignIn.style.display = 'none';
+                    els.guestActions.style.display = 'none';
                     els.authenticatedUser.style.display = 'flex';
                     els.btnSettings.style.display = 'flex';
                     els.btnImageConverter.style.display = 'flex';
                 } else {
-                    els.btnTopSignIn.style.display = 'flex';
+                    els.guestActions.style.display = 'flex';
                     els.authenticatedUser.style.display = 'none';
                     els.btnSettings.style.display = 'none';
                     els.btnImageConverter.style.display = 'none';
@@ -542,18 +627,18 @@
             } else if (viewName === 'settings') {
                 els.viewSettings.classList.add('active');
                 els.btnBack.style.display = 'flex';
-                els.btnTopSignIn.style.display = 'none';
+                els.guestActions.style.display = 'none';
                 els.authenticatedUser.style.display = 'none';
                 els.btnSettings.style.display = 'none';
                 els.btnImageConverter.style.display = 'none';
             }
         }
 
-        document.getElementById('btnGoToRegister').onclick = () => {
+        els.btnGoToRegisterText.onclick = () => {
             els.signInForm.style.display = 'none';
             els.signUpForm.style.display = 'block';
         };
-        document.getElementById('btnGoToLogin').onclick = () => {
+        els.btnGoToLoginText.onclick = () => {
             els.signUpForm.style.display = 'none';
             els.signInForm.style.display = 'block';
         };
@@ -573,23 +658,39 @@
 
         function showTimedLogin() {
             els.loginTitle.textContent = "Trial Period Ended";
-            els.loginSubtitle.textContent = "Your preview has expired. Please sign in or register to continue.";
+            els.loginTitle.style.color = "#ef4444"; 
+            els.loginSubtitle.textContent = "Your preview has expired. Please upgrade or sign in to continue.";
+            els.signInForm.style.display = 'block';
+            els.signUpForm.style.display = 'none';
             els.loginModal.style.display = 'flex';
             document.getElementById('btnCloseLogin').style.display = 'none';
         }
 
+        function showNotice() {
+            els.noticeModal.style.display = 'flex';
+        }
+
         els.btnTopSignIn.onclick = () => {
             els.loginTitle.textContent = "Sign In";
+            els.loginTitle.style.color = "var(--text-main)"; 
             els.loginSubtitle.textContent = "Access your account to manage dictionaries and bypass trial limits.";
+            els.signInForm.style.display = 'block';
+            els.signUpForm.style.display = 'none';
+            els.loginModal.style.display = 'flex';
+            document.getElementById('btnCloseLogin').style.display = 'block';
+        };
+
+        els.btnTopRegister.onclick = () => {
+            els.signInForm.style.display = 'none';
+            els.signUpForm.style.display = 'block';
             els.loginModal.style.display = 'flex';
             document.getElementById('btnCloseLogin').style.display = 'block';
         };
 
         els.btnSettings.onclick = () => { showView('settings'); };
         
-        // --- IMAGE CONVERTER BUTTON LOGIC ---
         els.btnImageConverter.onclick = () => {
-            els.noticeModal.style.display = 'flex';
+            showNotice();
         };
         
         els.btnCloseNotice.onclick = () => {
@@ -608,7 +709,10 @@
             showView('main');
             
             els.loginTitle.textContent = "Sign In";
+            els.loginTitle.style.color = "var(--text-main)";
             els.loginSubtitle.textContent = "You have been signed out. Please log in again to access your account.";
+            els.signInForm.style.display = 'block';
+            els.signUpForm.style.display = 'none';
             els.loginModal.style.display = 'flex';
             document.getElementById('btnCloseLogin').style.display = 'block';
         }
@@ -675,12 +779,6 @@
 
             if(!user || !pass) return;
 
-            if (user.toLowerCase() !== 'admin' && !user.includes('@')) {
-                err.textContent = "Please enter a valid email or 'admin'.";
-                err.style.display = 'block';
-                return;
-            }
-
             btn.innerText = "Verifying...";
             btn.disabled = true;
             err.style.display = 'none';
@@ -701,9 +799,12 @@
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     
                     if (diffDays <= 0) {
-                        alert("Your premium subscription has expired. Please contact the administrator.");
+                        alert("Your premium subscription has expired.");
                         els.loginTitle.textContent = "Account Expired";
+                        els.loginTitle.style.color = "#ef4444";
                         els.loginSubtitle.textContent = "Your premium subscription has ended. Please contact support.";
+                        els.signInForm.style.display = 'block';
+                        els.signUpForm.style.display = 'none';
                         els.loginModal.style.display = 'flex';
                         document.getElementById('btnCloseLogin').style.display = 'none';
                         btn.innerText = "Sign In";
