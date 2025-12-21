@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -153,20 +155,8 @@
             box-shadow: var(--shadow-sm);
         }
 
-        .user-name {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .user-days {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--primary);
-            background: var(--accent);
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
+        .user-name { font-size: 0.8rem; font-weight: 700; color: var(--text-main); }
+        .user-days { font-size: 0.7rem; font-weight: 600; color: var(--primary); background: var(--accent); padding: 2px 8px; border-radius: 12px; }
 
         .view { flex: 1; display: none; flex-direction: column; min-height: 0; }
         .view.active { display: flex; animation: fadeIn 0.4s ease-out; }
@@ -285,7 +275,6 @@
         .btn-primary:active { transform: translateY(0); }
         .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-        /* NEW: Buy Plans Button Style */
         .btn-buy-plans {
             width: 100%;
             background: var(--secondary);
@@ -357,6 +346,18 @@
             display: block;
         }
 
+        .success-circle {
+            width: 64px;
+            height: 64px;
+            background: #dcfce7;
+            color: #16a34a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
         @media (max-width: 768px) {
             header { grid-template-columns: 1fr; padding: 1rem; height: auto; gap: 1rem; }
             .brand { grid-column: 1; order: -1; }
@@ -377,71 +378,136 @@
         <span id="loadingText">Syncing Mappings...</span>
     </div>
 
-    <!-- Unified Login/Registration Modal -->
+    <!-- Unified Authentication Modal -->
     <div id="loginModal" class="modal-overlay">
         <!-- Sign In View -->
         <form class="login-card" id="signInForm" onsubmit="handleLoginSubmit(event)">
             <h3 id="loginTitle" style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Session Required</h3>
-            <p id="loginSubtitle" style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Please log in to continue using the converter.</p>
+            <p id="loginSubtitle" style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Your preview has expired. Register now to enjoy a 7-day free trial.</p>
             
-            <!-- Buy Plans Button for Trial Ended -->
             <button type="button" class="btn-buy-plans" onclick="showNotice()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 Buy Subscription Plan
             </button>
 
-            <div class="form-divider"><span>Or sign in to account</span></div>
+            <div class="form-divider"><span>Or sign in</span></div>
 
             <div style="margin-bottom: 1.25rem;">
                 <label for="loginUser">Email or Username</label>
                 <input type="text" id="loginUser" placeholder="Email or 'admin'" required>
             </div>
-            <div style="margin-bottom: 1.5rem;">
+            <div style="margin-bottom: 0.5rem;">
                 <label for="loginPass">Password</label>
                 <input type="password" id="loginPass" placeholder="••••••••" required>
+            </div>
+            <div style="text-align: right; margin-bottom: 1.5rem;">
+                <span class="text-link" id="btnGoToForgotText" style="font-size: 0.8rem;">Forgot password?</span>
             </div>
             <button type="submit" class="btn-primary" id="btnDoLogin">Sign In</button>
             
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
                 Don't have an account? <span class="text-link" id="btnGoToRegisterText">Create Account</span>
             </div>
-  
-            <button type="button" class="icon-btn" id="btnCloseLogin" disabled style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;"></button>
+
+            <button type="button" class="icon-btn" id="btnCloseLogin" style="width: 100%; margin-top: 1rem; border: none; font-weight: 600; font-size: 0.85rem;">Cancel</button>
             <p id="loginError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;">Authentication failed.</p>
         </form>
 
         <!-- Registration View -->
-        <form class="login-card" id="signUpForm" style="display: none;" onsubmit="handleRegisterSubmit(event)">
-            <h3 style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Create Account</h3>
-            <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Join the Manipuri Lingual Bridge. New members get a 2-day free trial.</p>
-            
-            <!-- Buy Plans Button for Registration -->
-            <button type="button" class="btn-buy-plans" onclick="showNotice()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                Buy Subscription Plan
-            </button>
+        <div class="login-card" id="signUpForm" style="display: none;">
+            <div id="regInputsView">
+                <h3 style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Create Account</h3>
+                <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Join the Manipuri Lingual Bridge.</p>
+                
+                <button type="button" class="btn-buy-plans" onclick="showNotice()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                    Buy Lifetime Access
+                </button>
 
-            <div class="form-divider"><span>Or register for trial</span></div>
+                <div class="form-divider"><span>Or register for trial</span></div>
+                
+                <!-- REG STEP 1: Email for OTP -->
+                <div id="regStep1">
+                    <div style="margin-bottom: 1.25rem;">
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" placeholder="yourname@example.com">
+                    </div>
+                    <button type="button" class="btn-primary" id="btnRequestOTP">Send OTP</button>
+                </div>
 
-            <div style="margin-bottom: 1.25rem;">
-                <label for="regName">Full Name</label>
-                <input type="text" id="regName" placeholder="e.g. John Doe" required>
+                <!-- REG STEP 2: Verify & Details -->
+                <div id="regStep2" style="display: none;">
+                    <p id="regInfoMsg" style="text-align: center; font-size: 0.8rem; color: var(--secondary); margin-bottom: 1rem;">Verification code sent to your inbox.</p>
+                    <div style="margin-bottom: 1.25rem;">
+                        <label for="regOTP">Verification OTP</label>
+                        <input type="text" id="regOTP" placeholder="6-digit code" maxlength="6">
+                    </div>
+                    <div style="margin-bottom: 1.25rem;">
+                        <label for="regName">Full Name</label>
+                        <input type="text" id="regName" placeholder="e.g. John Doe">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="regPass">Create Password</label>
+                        <input type="password" id="regPass" placeholder="Minimum 8 characters">
+                    </div>
+                    <button type="button" class="btn-primary" id="btnFinalizeReg">Verify & Create Account</button>
+                    <p style="text-align: center; margin-top: 1rem; font-size: 0.8rem;">
+                        Didn't get the code? <span class="text-link" id="btnResendOTP">Resend</span>
+                    </p>
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+                    Already have an account? <span class="text-link" id="btnGoToLoginText">Back to Sign In</span>
+                </div>
+                <p id="regError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;"></p>
+                <button type="button" class=" " style=" " onclick=" "></button>
             </div>
-            <div style="margin-bottom: 1.25rem;">
-                <label for="regEmail">Email Address</label>
-                <input type="email" id="regEmail" placeholder="yourname@example.com" required>
+
+            <!-- REG STEP 3: Success Screen -->
+            <div id="regSuccessView" style="display: none; text-align: center;">
+                <div class="success-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h3 style="font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">Account Created!</h3>
+                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 2rem;">Your registration was successful. You can now access all features by signing in.</p>
+                <button type="button" class="btn-primary" onclick="toggleAuth('signin')">Proceed to Sign In</button>
             </div>
-            <div style="margin-bottom: 1.5rem;">
-                <label for="regPass">Create Password</label>
-                <input type="password" id="regPass" placeholder="Minimum 8 characters" required minlength="8">
-            </div>
-            <button type="submit" class="btn-primary" id="btnDoRegister">Register Now</button>
+        </div>
+
+        <!-- Forgot Password View -->
+        <div class="login-card" id="forgotForm" style="display: none;">
+            <h3 style="margin-bottom: 1rem; text-align: center; font-weight: 800; color: var(--text-main);">Reset Password</h3>
+            <p style="text-align: center; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Recover your account access.</p>
             
+            <!-- RESET STEP 1: Email -->
+            <div id="resetStep1">
+                <div style="margin-bottom: 1.25rem;">
+                    <label for="resetEmail">Register Email</label>
+                    <input type="email" id="resetEmail" placeholder="yourname@example.com">
+                </div>
+                <button type="button" class="btn-primary" id="btnRequestResetOTP">Send Recovery Code</button>
+            </div>
+
+            <!-- RESET STEP 2: Verify & New Pass -->
+            <div id="resetStep2" style="display: none;">
+                <p id="resetInfoMsg" style="text-align: center; font-size: 0.8rem; color: var(--secondary); margin-bottom: 1rem;">Verification code sent to your email.</p>
+                <div style="margin-bottom: 1.25rem;">
+                    <label for="resetOTP">Verification OTP</label>
+                    <input type="text" id="resetOTP" placeholder="6-digit code" maxlength="6">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="newPass">New Password</label>
+                    <input type="password" id="newPass" placeholder="Minimum 8 characters">
+                </div>
+                <button type="button" class="btn-primary" id="btnFinalizeReset">Update Password</button>
+            </div>
+
             <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
-                Already have an account? <span class="text-link" id="btnGoToLoginText">Back to Sign In</span>
+                Remembered it? <span class="text-link" onclick="toggleAuth('signin')">Back to Login</span>
             </div>
-            <p id="regError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;"></p>
-        </form>
+            <p id="resetError" style="color: #ef4444; font-size: 0.8rem; font-weight: 600; margin-top: 1rem; text-align: center; display: none;"></p>
+            <button type="button" class=" " style=" " onclick="closeModal()"></button>
+        </div>
     </div>
 
     <!-- Development Notice Modal -->
@@ -459,26 +525,16 @@
     <header>
         <div style="grid-column: 1; display: flex; align-items: center; gap: 0.75rem;">
             <button class="icon-btn" id="btnBack" style="display: none;">&larr; Back</button>
-            
             <div id="guestActions" style="display: flex; gap: 0.75rem; align-items: center;" class="auth-actions">
-                <button class="nav-btn-primary" id="btnTopSignIn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                    Sign In
-                </button>
-                <button class="nav-btn-secondary" id="btnTopRegister">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
-                    Register
-                </button>
+                <button class="nav-btn-primary" id="btnTopSignIn">Sign In</button>
+                <button class="nav-btn-secondary" id="btnTopRegister">Register</button>
             </div>
-            
             <div id="authenticatedUser" style="display: none;" class="user-badge">
                 <div style="display: flex; flex-direction: column;">
                     <span id="displayFullName" class="user-name">Loading...</span>
                     <span id="displayRemainingDays" class="user-days">0 Days Left</span>
                 </div>
-                <button class="icon-btn" id="btnSignOut" title="Sign Out" style="padding: 0.3rem; border: none; background: transparent; box-shadow: none; color: #ef4444;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                </button>
+                <button class="icon-btn" id="btnSignOut" style="border: none; background: transparent; color: #ef4444;">Logout</button>
             </div>
         </div>
         <div class="brand" style="grid-column: 2;">
@@ -487,7 +543,6 @@
         </div>
         <div style="grid-column: 3; display: flex; justify-content: flex-end; gap: 0.75rem; align-items: center;">
             <button class="nav-btn-secondary" id="btnImageConverter" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span>Image/Pdf Converter</span>
             </button>
             <button class="icon-btn" id="btnSettings" title="Admin Control" style="display: none;">
@@ -551,7 +606,8 @@
     </footer>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4buIkwDd38HWSF3WBhJMQFawRHhLR4QH5t1tswCn6nxywqQ3Ffueg2nt5LJgBdXpj/exec"; 
+        const apiKey = "";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzixlOauUTaMPOO3v2PdGsDNGFvZYowVODN90awu171Xoh2v5jUAMEsrMkyqJqHMM3p/exec"; 
         const ADMIN_PASSCODE = "2025";
         
         let mappingData = [];
@@ -566,6 +622,7 @@
             noticeModal: document.getElementById('noticeModal'),
             signInForm: document.getElementById('signInForm'),
             signUpForm: document.getElementById('signUpForm'),
+            forgotForm: document.getElementById('forgotForm'),
             loading: document.getElementById('loading'),
             loadingText: document.getElementById('loadingText'),
             leftText: document.getElementById('leftText'),
@@ -588,28 +645,227 @@
             dictPasscode: document.getElementById('dictPasscode'),
             btnCloseNotice: document.getElementById('btnCloseNotice'),
             btnGoToRegisterText: document.getElementById('btnGoToRegisterText'),
-            btnGoToLoginText: document.getElementById('btnGoToLoginText')
+            btnGoToLoginText: document.getElementById('btnGoToLoginText'),
+            btnGoToForgotText: document.getElementById('btnGoToForgotText'),
+            regInputsView: document.getElementById('regInputsView'),
+            regSuccessView: document.getElementById('regSuccessView'),
+            regStep1: document.getElementById('regStep1'),
+            regStep2: document.getElementById('regStep2'),
+            regEmail: document.getElementById('regEmail'),
+            regOTP: document.getElementById('regOTP'),
+            regInfoMsg: document.getElementById('regInfoMsg'),
+            regError: document.getElementById('regError'),
+            resetStep1: document.getElementById('resetStep1'),
+            resetStep2: document.getElementById('resetStep2'),
+            resetEmail: document.getElementById('resetEmail'),
+            resetOTP: document.getElementById('resetOTP'),
+            resetError: document.getElementById('resetError'),
+            newPass: document.getElementById('newPass'),
+            resetInfoMsg: document.getElementById('resetInfoMsg')
         };
 
-        // --- PREVENT RELOAD / REFRESH SYSTEM ---
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'F5' || e.keyCode === 116) e.preventDefault();
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.keyCode === 82)) e.preventDefault();
-        });
-
-        window.addEventListener('beforeunload', (e) => {
-            if (isLoggedIn || els.leftText.value.trim().length > 0) {
-                const message = 'You have active progress or a session. Reloading will reset the app state.';
-                e.preventDefault();
-                e.returnValue = message;
-                return message;
+        async function postToGas(payload) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return { success: true, message: "Request processed." };
+                }
+            } catch (error) {
+                console.error("GAS POST Error:", error);
+                return { success: false, message: "Server connection failed." };
             }
-        });
+        }
+
+        function toggleAuth(view) {
+            els.signInForm.style.display = view === 'signin' ? 'block' : 'none';
+            els.signUpForm.style.display = view === 'signup' ? 'block' : 'none';
+            els.forgotForm.style.display = view === 'forgot' ? 'block' : 'none';
+            if (view === 'signup') resetRegForm();
+            if (view === 'forgot') resetForgotForm();
+        }
+
+        els.btnGoToRegisterText.onclick = () => toggleAuth('signup');
+        els.btnGoToLoginText.onclick = () => toggleAuth('signin');
+        els.btnGoToForgotText.onclick = () => toggleAuth('forgot');
+
+        function resetForgotForm() {
+            els.resetStep1.style.display = 'block';
+            els.resetStep2.style.display = 'none';
+            els.resetEmail.value = '';
+            els.resetOTP.value = '';
+            els.newPass.value = '';
+            els.resetError.style.display = 'none';
+        }
+
+        async function handleSendResetOTP() {
+            const email = els.resetEmail.value.trim();
+            if (!email.includes('@')) {
+                els.resetError.textContent = "Please enter a valid email.";
+                els.resetError.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnRequestResetOTP');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            els.resetError.style.display = 'none';
+
+            try {
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                const result = await postToGas({ action: 'registerOTP', email, otp });
+
+                if (result.success) {
+                    await simulateEmail(email, otp);
+                    els.resetStep1.style.display = 'none';
+                    els.resetStep2.style.display = 'block';
+                    els.resetInfoMsg.innerHTML = `Verification code sent to <b>${email}</b>.`;
+                } else {
+                    throw new Error("Failed");
+                }
+            } catch(e) {
+                els.resetError.textContent = "Could not initiate reset.";
+                els.resetError.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Send Recovery Code";
+            }
+        }
+
+        document.getElementById('btnRequestResetOTP').onclick = handleSendResetOTP;
+
+        document.getElementById('btnFinalizeReset').onclick = async () => {
+            const email = els.resetEmail.value.trim();
+            const otp = els.resetOTP.value.trim();
+            const password = els.newPass.value.trim();
+
+            if (!otp || password.length < 8) {
+                els.resetError.textContent = "OTP and 8+ char password required.";
+                els.resetError.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnFinalizeReset');
+            btn.disabled = true;
+            btn.innerText = "Updating...";
+            els.resetError.style.display = 'none';
+
+            try {
+                const result = await postToGas({ action: 'resetPassword', email, otp, password });
+                
+                setTimeout(() => {
+                    if (result.success) {
+                        alert("Password updated successfully! Please log in.");
+                        toggleAuth('signin');
+                    } else {
+                        els.resetError.textContent = result.message || "Reset failed. Please check the code.";
+                        els.resetError.style.display = 'block';
+                    }
+                    btn.disabled = false;
+                    btn.innerText = "Update Password";
+                }, 1500);
+            } catch(e) { 
+                els.resetError.textContent = "Network error.";
+                els.resetError.style.display = 'block';
+                btn.disabled = false; 
+                btn.innerText = "Update Password";
+            }
+        };
+
+        async function handleSendOTP() {
+            const email = els.regEmail.value.trim();
+            if (!email.includes('@')) {
+                els.regError.textContent = "Please enter a valid email.";
+                els.regError.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnRequestOTP');
+            btn.disabled = true;
+            btn.innerText = "Sending...";
+            els.regError.style.display = 'none';
+
+            try {
+                const otp = Math.floor(100000 + Math.random() * 900000).toString();
+                const result = await postToGas({ action: 'registerOTP', email, otp });
+                
+                if (result.success) {
+                    await simulateEmail(email, otp);
+                    els.regStep1.style.display = 'none';
+                    els.regStep2.style.display = 'block';
+                    els.regInfoMsg.innerHTML = `Code sent to <b>${email}</b>.`;
+                } else {
+                    throw new Error();
+                }
+            } catch(e) {
+                els.regError.textContent = "Service busy.";
+                els.regError.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Send OTP";
+            }
+        }
+
+        async function simulateEmail(email, otp) {
+            if (!apiKey) return;
+            const prompt = `NOTIFICATION: User ${email} Verification code: ${otp}.`;
+            try {
+                await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+            } catch(e) {}
+        }
+
+        document.getElementById('btnRequestOTP').onclick = handleSendOTP;
+        document.getElementById('btnResendOTP').onclick = handleSendOTP;
+
+        document.getElementById('btnFinalizeReg').onclick = async () => {
+            const email = els.regEmail.value.trim();
+            const otp = els.regOTP.value.trim();
+            const name = document.getElementById('regName').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+
+            if (!otp || !name || pass.length < 8) {
+                els.regError.textContent = "Please fill all fields.";
+                els.regError.style.display = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('btnFinalizeReg');
+            btn.disabled = true;
+            btn.innerText = "Verifying...";
+
+            try {
+                const result = await postToGas({ action: 'completeRegistration', email, otp, name, password: pass });
+                if (result.success) {
+                    // Switch to success view
+                    els.regInputsView.style.display = 'none';
+                    els.regSuccessView.style.display = 'block';
+                } else {
+                    els.regError.textContent = result.message || "Invalid OTP code.";
+                    els.regError.style.display = 'block';
+                }
+            } catch(e) { 
+                els.regError.textContent = "Error during verification.";
+                els.regError.style.display = 'block';
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = "Verify & Create Account";
+            }
+        };
 
         function showView(viewName) {
             els.viewMain.classList.remove('active');
             els.viewSettings.classList.remove('active');
-            
             if (viewName === 'main') {
                 els.viewMain.classList.add('active');
                 els.btnBack.style.display = 'none';
@@ -634,18 +890,21 @@
             }
         }
 
-        els.btnGoToRegisterText.onclick = () => {
-            els.signInForm.style.display = 'none';
-            els.signUpForm.style.display = 'block';
-        };
-        els.btnGoToLoginText.onclick = () => {
-            els.signUpForm.style.display = 'none';
-            els.signInForm.style.display = 'block';
-        };
+        function resetRegForm() {
+            els.regInputsView.style.display = 'block';
+            els.regSuccessView.style.display = 'none';
+            els.regStep1.style.display = 'block';
+            els.regStep2.style.display = 'none';
+            els.regEmail.value = '';
+            els.regOTP.value = '';
+            document.getElementById('regName').value = '';
+            document.getElementById('regPass').value = '';
+            els.regError.style.display = 'none';
+        }
 
         function startAutoLockTimer() {
             if (isLoggedIn) return;
-            let timeLeft = 30; 
+            let timeLeft = 4; 
             if (countdownTimer) clearInterval(countdownTimer);
             countdownTimer = setInterval(() => {
                 timeLeft--;
@@ -659,116 +918,21 @@
         function showTimedLogin() {
             els.loginTitle.textContent = "Trial Period Ended";
             els.loginTitle.style.color = "#ef4444"; 
-            els.loginSubtitle.textContent = "Your preview has expired. Please upgrade or sign in to continue.";
-            els.signInForm.style.display = 'block';
-            els.signUpForm.style.display = 'none';
+            toggleAuth('signin');
             els.loginModal.style.display = 'flex';
             document.getElementById('btnCloseLogin').style.display = 'none';
         }
 
-        function showNotice() {
-            els.noticeModal.style.display = 'flex';
-        }
-
-        els.btnTopSignIn.onclick = () => {
-            els.loginTitle.textContent = "Sign In";
-            els.loginTitle.style.color = "var(--text-main)"; 
-            els.loginSubtitle.textContent = "Access your account to manage dictionaries and bypass trial limits.";
-            els.signInForm.style.display = 'block';
-            els.signUpForm.style.display = 'none';
-            els.loginModal.style.display = 'flex';
-            document.getElementById('btnCloseLogin').style.display = 'block';
-        };
-
-        els.btnTopRegister.onclick = () => {
-            els.signInForm.style.display = 'none';
-            els.signUpForm.style.display = 'block';
-            els.loginModal.style.display = 'flex';
-            document.getElementById('btnCloseLogin').style.display = 'block';
-        };
-
+        function showNotice() { els.noticeModal.style.display = 'flex'; }
+        els.btnTopSignIn.onclick = () => { toggleAuth('signin'); els.loginModal.style.display = 'flex'; document.getElementById('btnCloseLogin').style.display = 'block'; };
+        els.btnTopRegister.onclick = () => { toggleAuth('signup'); els.loginModal.style.display = 'flex'; document.getElementById('btnCloseLogin').style.display = 'block'; };
         els.btnSettings.onclick = () => { showView('settings'); };
-        
-        els.btnImageConverter.onclick = () => {
-            showNotice();
-        };
-        
-        els.btnCloseNotice.onclick = () => {
-            els.noticeModal.style.display = 'none';
-        };
-
-        els.btnSignOut.onclick = () => {
-            handleSignOut();
-        };
-
-        function handleSignOut() {
-            isLoggedIn = false;
-            currentUserData = null;
-            els.displayFullName.textContent = "Guest";
-            els.displayRemainingDays.textContent = "";
-            showView('main');
-            
-            els.loginTitle.textContent = "Sign In";
-            els.loginTitle.style.color = "var(--text-main)";
-            els.loginSubtitle.textContent = "You have been signed out. Please log in again to access your account.";
-            els.signInForm.style.display = 'block';
-            els.signUpForm.style.display = 'none';
-            els.loginModal.style.display = 'flex';
-            document.getElementById('btnCloseLogin').style.display = 'block';
-        }
-
-        document.getElementById('btnCloseLogin').onclick = () => { els.loginModal.style.display = 'none'; };
+        els.btnImageConverter.onclick = showNotice;
+        els.btnCloseNotice.onclick = () => { els.noticeModal.style.display = 'none'; };
+        els.btnSignOut.onclick = () => { isLoggedIn = false; currentUserData = null; showView('main'); els.loginModal.style.display = 'flex'; };
+        document.getElementById('btnCloseLogin').onclick = closeModal;
+        function closeModal() { els.loginModal.style.display = 'none'; }
         els.btnBack.onclick = () => { showView('main'); };
-
-        async function handleRegisterSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-            const btn = document.getElementById('btnDoRegister');
-            const err = document.getElementById('regError');
-
-            if(!name || !email || pass.length < 8) {
-                err.textContent = "Check fields: Password must be 8+ chars.";
-                err.style.display = 'block';
-                return;
-            }
-
-            btn.innerText = "Connecting...";
-            btn.disabled = true;
-            err.style.display = 'none';
-
-            const payload = { 
-                action: 'register', 
-                sheetName: 'Registration',
-                data: { "Full name": name, "Email": email, "password": pass, "end date time": new Date().toLocaleString() }
-            };
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (result.success || result.status === "success") {
-                    alert(`Welcome ${name}! Please sign in.`);
-                    els.signUpForm.style.display = 'none';
-                    els.signInForm.style.display = 'block';
-                    document.getElementById('loginUser').value = email;
-                } else {
-                    err.textContent = result.message || "Registration failed.";
-                    err.style.display = 'block';
-                }
-            } catch (e) {
-                err.textContent = "Connection error.";
-                err.style.display = 'block';
-            } finally {
-                btn.innerText = "Register Now";
-                btn.disabled = false;
-            }
-        }
 
         async function handleLoginSubmit(e) {
             e.preventDefault();
@@ -777,55 +941,35 @@
             const btn = document.getElementById('btnDoLogin');
             const err = document.getElementById('loginError');
 
-            if(!user || !pass) return;
-
             btn.innerText = "Verifying...";
             btn.disabled = true;
             err.style.display = 'none';
 
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'login', user, password: pass })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    const tempUserData = result.userData || { "Full name": "Member" };
-                    const expiryStr = tempUserData["end date time"];
-                    const expiryDate = new Date(expiryStr);
-                    const now = new Date();
-                    const diffTime = expiryDate - now;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const result = await postToGas({ action: 'login', user, password: pass });
+                if (result.success && result.userData) {
+                    isLoggedIn = true;
+                    currentUserData = result.userData;
+                    const expiryDate = new Date(currentUserData["end date time"]);
+                    const diffDays = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
                     
                     if (diffDays <= 0) {
-                        alert("Your premium subscription has expired.");
-                        els.loginTitle.textContent = "Account Expired";
-                        els.loginTitle.style.color = "#ef4444";
-                        els.loginSubtitle.textContent = "Your premium subscription has ended. Please contact support.";
-                        els.signInForm.style.display = 'block';
-                        els.signUpForm.style.display = 'none';
-                        els.loginModal.style.display = 'flex';
-                        document.getElementById('btnCloseLogin').style.display = 'none';
-                        btn.innerText = "Sign In";
-                        btn.disabled = false;
+                        err.textContent = "Your subscription has expired.";
+                        err.style.display = 'block';
+                        isLoggedIn = false;
                         return;
                     }
-
-                    isLoggedIn = true;
-                    currentUserData = tempUserData;
-                    els.displayFullName.textContent = currentUserData["Full name"] || "User";
+                    els.displayFullName.textContent = currentUserData["Full name"];
                     els.displayRemainingDays.textContent = `${diffDays} Days Left`;
-                    
                     if (countdownTimer) clearInterval(countdownTimer);
                     els.loginModal.style.display = 'none';
                     showView('main'); 
                 } else {
-                    err.textContent = "Invalid credentials.";
+                    err.textContent = "Invalid username or password.";
                     err.style.display = 'block';
                 }
             } catch (e) {
-                err.textContent = "Login connection failed.";
+                err.textContent = "Network connection failed.";
                 err.style.display = 'block';
             } finally {
                 btn.innerText = "Sign In";
@@ -836,44 +980,30 @@
         function convert() {
             let text = els.leftText.value;
             if (!text) { els.rightText.value = ""; return; }
-            if (!Array.isArray(mappingData)) return;
-
             const from = els.leftScript.value;
             const sourceKey = from;
             const targetKey = from === 'Bangala' ? 'Meetei Mayek' : 'Bangala';
-
-            const sorted = [...mappingData].sort((a,b) => {
-                const lenA = a[sourceKey] ? String(a[sourceKey]).length : 0;
-                const lenB = b[sourceKey] ? String(b[sourceKey]).length : 0;
-                return lenB - lenA;
-            });
-
+            const sorted = [...mappingData].sort((a,b) => String(b[sourceKey]).length - String(a[sourceKey]).length);
             sorted.forEach(m => {
-                const srcVal = String(m[sourceKey] || "");
-                const tgtVal = String(m[targetKey] || "");
-                if (srcVal) text = text.split(srcVal).join(tgtVal);
+                const src = String(m[sourceKey] || "");
+                const tgt = String(m[targetKey] || "");
+                if (src) text = text.split(src).join(tgt);
             });
             els.rightText.value = text;
         }
 
         els.leftText.oninput = convert;
         els.leftScript.onchange = convert;
-        els.rightScript.onchange = convert;
 
         async function load() {
             try {
                 els.loading.classList.remove('hidden');
                 const r = await fetch(SCRIPT_URL + "?sheet=Mappings"); 
-                const result = await r.json();
-                mappingData = Array.isArray(result) ? result : [];
+                mappingData = await r.json();
                 els.loading.classList.add('hidden');
                 startAutoLockTimer();
             } catch (e) {
-                console.error("Load failed:", e);
-                mappingData = [];
-                els.loadingText.textContent = "Offline Mode";
-                setTimeout(() => els.loading.classList.add('hidden'), 2000);
-                startAutoLockTimer();
+                els.loading.classList.add('hidden');
             }
         }
 
@@ -896,7 +1026,7 @@
 
             const btn = document.getElementById('btnDataUpdate');
             btn.disabled = true;
-            els.statusMsg.innerText = "Updating Sheet...";
+            els.statusMsg.innerText = "Updating ...";
             els.statusMsg.style.color = "var(--text-muted)";
             
             try {
@@ -923,7 +1053,6 @@
                 btn.disabled = false;
             }
         };
-
         window.onload = load;
     </script>
 </body>
