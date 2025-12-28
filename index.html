@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +65,21 @@
         .header-right-side {
             justify-content: flex-end;
         }
+        .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .header-title {
+            margin: 1;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--primary);
+        }
 
         .user-info-chip {
             display: flex;
@@ -78,6 +92,7 @@
             border-radius: var(--radius);
             border: 1px solid var(--border);
         }
+        
 
         .user-name-display {
             font-weight: 600;
@@ -534,6 +549,10 @@
                 </div>
                 <button id="logout-btn" class="auth-btn" style="color:var(--error); border-color: #fee2e2;" onclick="location.reload()">Sign Out</button>
             </div>
+        </div>
+        <div class="header-center">
+            <h1 class="header-title">Manipuri Script Utility</h1>
+            <p class="header-subtitle" id="trans-label">Bengali to Meetei Mayek</p>
         </div>
 
         <div class="header-right-side">
