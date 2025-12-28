@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1094,8 +1095,8 @@
             const lang = document.getElementById('type-lang').value;
             const sel = document.getElementById('kb-layout');
             sel.style.display = lang === 'english' ? 'none' : 'inline-block';
-            if (lang === 'bengali') sel.innerHTML = '<option value=" Bengali"> Bengali</option><option value="Modular Bengali">Modular Bengali</option>';
-            else if (lang === 'meetei') sel.innerHTML = '<option value=" Meetei Mayek"> Meetei Mayek</option><option value="Modular Meetei Mayek">Modular Meetei Mayek</option>';
+            if (lang === 'bengali') sel.innerHTML = '<option value="Sample Bengali">Sample Bengali</option><option value="Modular Bengali">Modular Bengali</option>';
+            else if (lang === 'meetei') sel.innerHTML = '<option value="Sample Meetei Mayek">Sample Meetei Mayek</option><option value="Modular Meetei Mayek">Modular Meetei Mayek</option>';
             
             if (lang === 'english') {
                 keymap = {};
