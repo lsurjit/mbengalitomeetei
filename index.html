@@ -718,6 +718,9 @@
                 </div>
                 <span class="forgot-link" onclick="switchLoginStep('reset-step-1')">Forgot Password?</span>
                 <button class="login-submit" onclick="doLogin()">Sign In</button>
+                <p style="text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 1rem;">
+                    Don't have an account? <span style="color: var(--primary); cursor: pointer; font-weight: 600;" onclick="closeModal('loginModal'); openModal('registerModal')">Create one</span>
+                </p>
             </div>
             <div id="login-step-reset-1" style="display:none">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -787,7 +790,7 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXS_RZ_ISzuuctxF8cpRK6eM_s2LVAjEv1vHUSrI6Kv8dYeoOHoGwhbjr1YL7F-AOClg/exec";
         let dictionary = [];
         let keymap = {};
-        let previewTimeLeft = 300;
+        let previewTimeLeft = 5;
         let previewInterval = null;
         let isUserAuthenticated = false;
 
