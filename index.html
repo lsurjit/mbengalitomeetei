@@ -100,7 +100,6 @@
             border-radius: var(--radius);
             border: 1px solid var(--border);
         }
-        
 
         .user-name-display {
             font-weight: 600;
@@ -151,16 +150,6 @@
             box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
         }
 
-        .timer-badge {
-            background: #fef2f2;
-            color: var(--error);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            border: 1px solid #fee2e2;
-        }
-
         /* View Containers */
         .view-container {
             display: none;
@@ -183,6 +172,7 @@
             align-items: center;
             gap: 1.5rem;
             flex-shrink: 0;
+            overflow-x: auto;
         }
 
         .ribbon-group {
@@ -213,6 +203,7 @@
             align-items: center;
             justify-content: center;
             min-width: 32px;
+            font-size: 0.85rem;
         }
 
         .ribbon-btn:hover { 
@@ -238,7 +229,7 @@
             background: var(--white);
         }
 
-        /* Typing Workspace - MULTI PAGE LAYOUT */
+        /* Typing Workspace */
        .typing-workspace {
             flex: 1;
             background: #e2e8f0;               
@@ -416,7 +407,7 @@
             max-width: 800px;
         }
 
-        .kb-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 6px; }
+        .kb-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
         .kb-key {
             background: #f8fafc;
             border: 1px solid var(--border);
@@ -546,8 +537,7 @@
         <div class="header-left-side">
             <div class="auth-buttons" id="logged-out-auth">
                 <button class="auth-btn" onclick="openModal('loginModal')">Login</button>
-                <button class="auth-btn" onclick="openModal('registerModal')">Registration</button>
-                
+                <button id="header-reg-btn" class="auth-btn" onclick="openRegisterModal()">Registration</button>
             </div>
             
             <div id="logged-in-user-area" style="display:none; align-items:center;">
@@ -581,7 +571,7 @@
                 Your preview period has ended. Register for free to unlock the Typing Tool and custom dictionaries.
             </p>
             <div id="lock-actions">
-                <button class="login-submit" onclick="openModal('registerModal')">Create Free Account</button>
+                <button class="login-submit" onclick="openRegisterModal()">Create Free Account</button>
                 <p style="margin-top: 20px; font-size: 0.9rem; color: #94a3b8;">
                     Already a member? <span style="color: var(--primary); cursor: pointer; font-weight: 600;" onclick="openModal('loginModal')">Login</span>
                 </p>
@@ -624,6 +614,12 @@
     <div id="typingToolView" class="view-container">
         <div class="office-ribbon">
             <div class="ribbon-group">
+                <span class="ribbon-label">File Management</span>
+                <button class="ribbon-btn" onclick="openFile()" title="Open File (Ctrl+O)">📂 Open</button>
+                <button class="ribbon-btn" onclick="saveFile()" title="Save File (Ctrl+S)">💾 Save</button>
+            </div>
+
+            <div class="ribbon-group">
                 <span class="ribbon-label">History</span>
                 <button class="ribbon-btn" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
@@ -649,7 +645,7 @@
                 <select id="f-size" class="ribbon-select" onchange="applyTypingStyle('fontSize', this.value)">
                     <option value="11pt">Size: 11</option>
                     <option value="12pt">Size: 12</option>
-                    <option value="14pt">Size: 14</option>
+                    <option value="14pt" selected>Size: 14</option>
                     <option value="18pt">Size: 18</option>
                     <option value="24pt">Size: 24</option>
                 </select>
@@ -701,6 +697,9 @@
         </div>
     </div>
 
+    <!-- Hidden Inputs -->
+    <input type="file" id="file-open-input" style="display:none" accept=".txt,.meetei" onchange="handleFileOpen(event)">
+
     <!-- MODALS -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -717,12 +716,13 @@
                     <label class="form-label">Password</label>
                     <input type="password" id="pass" class="form-input" placeholder="********" onkeydown="if(event.key==='Enter') doLogin()">
                 </div>
-                <span class="forgot-link" onclick="switchLoginStep('reset-step-1')">Forgot Password?</span>
+                <span class="forgot-link" onclick="switchLoginStep('reset-1')">Forgot Password?</span>
                 <button class="login-submit" onclick="doLogin()">Sign In</button>
-                <p style="text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 1rem;">
-                    Don't have an account? <span style="color: var(--primary); cursor: pointer; font-weight: 600;" onclick="closeModal('loginModal'); openModal('registerModal')">Create one</span>
+                <p id="login-to-reg-prompt" style="text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 1rem;">
+                    Don't have an account? <span style="color: var(--primary); cursor: pointer; font-weight: 600;" onclick="closeModal('loginModal'); openRegisterModal()">Create one</span>
                 </p>
             </div>
+
             <div id="login-step-reset-1" style="display:none">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h3 style="margin:0; font-weight: 800;">Reset Password</h3>
@@ -734,10 +734,11 @@
                 </div>
                 <button class="login-submit" onclick="handleResetSendOTP()">Send Reset Code</button>
             </div>
+
             <div id="login-step-reset-2" style="display:none">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <h3 style="margin:0; font-weight: 800;">Set New Password</h3>
-                    <button onclick="switchLoginStep('reset-step-1')" style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:#94a3b8;">&larr;</button>
+                    <button onclick="switchLoginStep('reset-1')" style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:#94a3b8;">&larr;</button>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Verification Code</label>
@@ -748,6 +749,19 @@
                     <input type="password" id="reset-new-pass" class="form-input" placeholder="********">
                 </div>
                 <button class="login-submit" onclick="doResetPassword()">Update Password</button>
+            </div>
+
+            <div id="login-step-reset-success" style="display:none; text-align: center;">
+                <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">👤</div>
+                <h3 style="margin:0; font-weight: 800; color: var(--success);">Password Updated</h3>
+                <p style="margin: 1.5rem 0; color: #64748b; font-size: 0.9rem; line-height: 1.5;">
+                    Your password has been reset successfully. Please use the username below to sign in:
+                </p>
+                <div style="background: #f1f5f9; padding: 1.25rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--border);">
+                    <label class="form-label" style="margin-bottom: 4px; color: #94a3b8;">Registered Username</label>
+                    <div id="recovered-username" style="font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -0.01em;">---</div>
+                </div>
+                <button class="login-submit" onclick="switchLoginStep('main')">Proceed to Login</button>
             </div>
         </div>
     </div>
@@ -788,19 +802,29 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXS_RZ_ISzuuctxF8cpRK6eM_s2LVAjEv1vHUSrI6Kv8dYeoOHoGwhbjr1YL7F-AOClg/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyO3XHVrfXZgwwML9QoDc1OhVkEoREGlvWfbf2JMgE6d7BrFA9fU5cwOF25xwYz7vCg5Q/exec";
         let dictionary = [];
         let keymap = {};
         let previewTimeLeft = 300;
         let previewInterval = null;
         let isUserAuthenticated = false;
+        let currentFileName = "Untitled.txt";
 
+        // Shortcut Handlers
         window.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-                const activeEl = document.activeElement;
-                if (activeEl && activeEl.classList.contains('page-content-area')) {
+            if ((e.ctrlKey || e.metaKey)) {
+                if (e.key.toLowerCase() === 'a') {
+                    const activeEl = document.activeElement;
+                    if (activeEl && activeEl.classList.contains('page-content-area')) {
+                        e.preventDefault();
+                        selectAllPages();
+                    }
+                } else if (e.key.toLowerCase() === 's') {
                     e.preventDefault();
-                    selectAllPages();
+                    saveFile();
+                } else if (e.key.toLowerCase() === 'o') {
+                    e.preventDefault();
+                    openFile();
                 }
             }
         });
@@ -816,51 +840,106 @@
             selection.addRange(range);
         }
 
+        // File Operations
+        function openFile() {
+            const input = document.getElementById('file-open-input');
+            input.value = ""; 
+            input.click();
+        }
+
+        function handleFileOpen(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            showToast("Reading file...");
+            currentFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const container = document.getElementById('pages-container');
+                container.innerHTML = '';
+                const contentArea = addNewTypingPage();
+                contentArea.innerText = content;
+                if (contentArea.scrollHeight > contentArea.clientHeight) checkPagination(contentArea);
+                showToast(`Loaded: ${file.name}`);
+                updatePageStatusDisplay();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function saveFile() {
+            const pages = document.querySelectorAll('.page-content-area');
+            let content = "";
+            pages.forEach((p, idx) => {
+                content += p.innerText;
+                if (idx < pages.length - 1) content += "\n"; 
+            });
+            let fileName = currentFileName || "Untitled.txt";
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            showToast("File Saved");
+        }
+
+        // Typing Core
         function initTypingTool() {
             const container = document.getElementById('pages-container');
             if (container.children.length === 0) addNewTypingPage();
             updatePageStatusDisplay();
         }
 
+        function checkPagination(activeArea) {
+             if (activeArea.scrollHeight > activeArea.clientHeight + 20) addNewTypingPage();
+        }
+
         function addNewTypingPage() {
             const container = document.getElementById('pages-container');
             const page = document.createElement('div');
             page.className = 'word-page';
-            
             const contentArea = document.createElement('div');
             contentArea.className = 'page-content-area';
             contentArea.contentEditable = "true";
-            
+            contentArea.spellcheck = false;
             contentArea.style.fontSize = document.getElementById('f-size').value;
             contentArea.style.lineHeight = document.getElementById('l-spacing').value;
             const activeAlign = document.querySelector('.align-btn.active');
             contentArea.style.textAlign = activeAlign ? activeAlign.id.split('-')[1] : 'left';
-
+            
             contentArea.onkeydown = (e) => {
                 const currentLang = document.getElementById('type-lang').value;
                 
-                if (e.key === 'Backspace') {
-                    handleBackspaceNavigation(e, page, contentArea);
+                // 1. Allow functional/control keys always
+                const controlKeys = ['Backspace', 'Enter', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Delete', 'Home', 'End', 'Escape', 'Control', 'Shift', 'Alt', 'Meta'];
+                if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                    if (e.key === 'Backspace') handleBackspaceNavigation(e, page, contentArea);
                     return;
                 }
 
-                if (currentLang !== 'english' && keymap[e.key]) {
-                    e.preventDefault();
-                    document.execCommand('insertText', false, keymap[e.key]);
-                }
+                // 2. Space is always allowed
+                if (e.key === ' ') return;
+
+                // 3. For Transliteration Mode (Bengali/Meetei)
+                if (currentLang !== 'english') {
+                    e.preventDefault(); // Stop default typing
+                    
+                    // Check if the key exists in the keymap (Visual Keyboard check)
+                    const mapping = keymap[e.key];
+                    if (mapping !== undefined && mapping !== null && mapping !== "") {
+                        document.execCommand('insertText', false, mapping);
+                    } else {
+                        // Character is NOT in the Sheet/Keyboard - Silently block it
+                    }
+                } 
+                // 4. For English mode, allow standard typing (since it uses system keyboard)
             };
 
             contentArea.oninput = () => {
-                if (contentArea.scrollHeight > contentArea.clientHeight) {
-                    addNewTypingPage();
-                }
+                if (contentArea.scrollHeight > contentArea.clientHeight + 20) addNewTypingPage();
                 updatePageStatusDisplay();
             };
-
-            contentArea.onfocus = () => {
-                updatePageStatusDisplay();
-            };
-            
+            contentArea.onfocus = () => updatePageStatusDisplay();
             page.appendChild(contentArea);
             container.appendChild(page);
             updatePageStatusDisplay();
@@ -872,12 +951,10 @@
             const sel = window.getSelection();
             if (sel.rangeCount > 0) {
                 const range = sel.getRangeAt(0);
-                // Only navigate back if caret is at the very beginning and nothing is selected
                 if (range.startOffset === 0 && range.endOffset === 0) {
                     const prevPage = page.previousElementSibling;
                     if (prevPage) {
                         const prevArea = prevPage.querySelector('.page-content-area');
-                        // If current page is empty, remove it
                         if (contentArea.innerText.trim() === "") {
                             e.preventDefault();
                             page.remove();
@@ -887,9 +964,6 @@
                             newRange.collapse(false);
                             sel.removeAllRanges();
                             sel.addRange(newRange);
-                        } else {
-                            // Just focus previous if not empty but at start
-                            prevArea.focus();
                         }
                         updatePageStatusDisplay();
                     }
@@ -926,6 +1000,7 @@
             if (id === 'typingToolView') initTypingTool();
         }
 
+        // API & Auth
         async function apiPost(action, payload) {
             showToast("Processing...");
             try {
@@ -934,13 +1009,8 @@
                     body: JSON.stringify({ action, payload })
                 });
                 const result = await response.json();
-                if (result.success) {
-                    showToast(result.message || "Success!");
-                    return result;
-                } else {
-                    showToast(result.message || "Action failed");
-                    return null;
-                }
+                if (result.success) { showToast(result.message || "Success!"); return result; }
+                else { showToast(result.message || "Action failed"); return result; }
             } catch (e) { showToast("Error processing request"); return null; }
         }
 
@@ -948,8 +1018,6 @@
             if (isUserAuthenticated) return;
             previewInterval = setInterval(() => {
                 previewTimeLeft--;
-                const display = document.getElementById('preview-timer-display');
-                if (display) display.textContent = `Preview: ${previewTimeLeft}s`;
                 if (previewTimeLeft <= 0) {
                     clearInterval(previewInterval);
                     showlockOverlay("preview");
@@ -959,24 +1027,12 @@
 
         function showlockOverlay(type) {
             const overlay = document.getElementById('lockOverlay');
-            const title = document.getElementById('lock-title');
-            const msg = document.getElementById('lock-message');
-            const emoji = document.getElementById('lock-emoji');
-            const actions = document.getElementById('lock-actions');
-
             if (type === "expired") {
-                emoji.textContent = "⌛";
-                title.textContent = "Plan Expired";
-                msg.textContent = "Your plan has ended. To upgrade your plan and get full access, please contact the support team.";
-                actions.style.display = "none"; 
-                showToast("Your plan has ended.");
-            } else {
-                emoji.textContent = "✨";
-                title.textContent = "Get Full Access";
-                msg.textContent = "Your preview period has ended. Register for free to unlock the Typing Tool and custom dictionaries.";
-                actions.style.display = "block";
+                document.getElementById('lock-emoji').textContent = "⌛";
+                document.getElementById('lock-title').textContent = "Plan Expired";
+                document.getElementById('lock-message').textContent = "Your plan has ended. To upgrade your plan and get full access, please contact the support team.";
+                document.getElementById('lock-actions').style.display = "none"; 
             }
-            
             overlay.style.display = 'flex';
             switchView('conversionView');
             document.getElementById('tool-buttons').style.display = 'none';
@@ -985,124 +1041,114 @@
         async function fetchDictionary() {
             try {
                 const r = await fetch(`${SCRIPT_URL}?action=getDictionary`);
-                const data = await r.json();
-                dictionary = Array.isArray(data) ? data : [];
+                dictionary = await r.json();
                 handleConversion();
-            } catch (e) { console.error("Dict error", e); }
+            } catch (e) {}
         }
 
         async function fetchKeymap(name) {
-            if (!name || name === 'english') { 
-                keymap = {}; 
-                return; 
-            }
+            if (!name || name === 'english') { keymap = {}; return; }
             showToast("Loading keyboard...");
-    
             try {
                 const r = await fetch(`${SCRIPT_URL}?type=keymap&sheetName=${encodeURIComponent(name)}`);
                 keymap = await r.json();
                 if (document.getElementById('kb-map').style.display === 'block') renderKeys();
                 showToast("Keyboard ready");
-            } catch (e) { showToast("Failed to load keyboard"); }
+            } catch (e) {}
         }
 
         function handleConversion() {
             const txt = document.getElementById('input-text').value;
             const out = document.getElementById('output-text');
-            const iL = document.getElementById('in-lang').value;
-            const oL = document.getElementById('out-lang').value;
+            const iL = document.getElementById('in-lang').value, oL = document.getElementById('out-lang').value;
             if (!txt || iL === oL) { out.value = txt; return; }
             const sorted = [...dictionary].sort((a, b) => (String(b[iL] || "").length) - (String(a[iL] || "").length));
             let res = txt;
             sorted.forEach(item => {
-                const sourceVal = String(item[iL] || "");
-                const targetVal = String(item[oL] || "");
-                if (sourceVal && targetVal) {
-                    const escaped = sourceVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    res = res.replace(new RegExp(escaped, 'g'), targetVal);
-                }
+                const s = String(item[iL] || ""), t = String(item[oL] || "");
+                if (s && t) res = res.replace(new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), t);
             });
             out.value = res;
         }
 
         function swapLangs() {
-            const i = document.getElementById('in-lang');
-            const o = document.getElementById('out-lang');
+            const i = document.getElementById('in-lang'), o = document.getElementById('out-lang');
             [i.value, o.value] = [o.value, i.value];
             handleConversion();
         }
 
-         async function doLogin() {
-            const user = document.getElementById('user').value;
-            const pass = document.getElementById('pass').value;
+        async function doLogin() {
+            const user = document.getElementById('user').value, pass = document.getElementById('pass').value;
             if (!user || !pass) return showToast("Enter credentials");
             const res = await apiPost('loginUser', { user, pass });
             if (res && res.success) {
-                const expiry = res.trial_end_date ? new Date(res.trial_end_date) : null;
-                const today = new Date();
-                const diffDays = expiry ? Math.ceil((expiry - today) / (1000 * 60 * 60 * 24)) : -1;
-
-                if (expiry && diffDays <= 0) {
-                    showlockOverlay("expired");
-                    return;
-                }
-
+                const exp = res.trial_end_date ? new Date(res.trial_end_date) : null;
+                const diff = exp ? Math.ceil((exp - new Date()) / 86400000) : -1;
+                if (exp && diff <= 0) { showlockOverlay("expired"); return; }
                 isUserAuthenticated = true;
                 clearInterval(previewInterval);
                 document.getElementById('logged-out-auth').style.display = 'none';
                 document.getElementById('logged-in-user-area').style.display = 'flex';
                 document.getElementById('display-user-name').textContent = res.user || user;
-                
-                const daysLabel = document.getElementById('display-user-days');
-                daysLabel.textContent = expiry ? `${diffDays} Days Left` : "Active Plan";
-
+                document.getElementById('display-user-days').textContent = exp ? `${diff} Days Left` : "Active Plan";
                 document.getElementById('tool-buttons').style.display = 'flex';
-                document.getElementById('buy-plan-btn').style.display = 'block';
                 document.getElementById('lockOverlay').style.display = 'none';
+                document.getElementById('header-reg-btn').style.display = 'none';
                 closeModal('loginModal');
             }
         }
 
+        function openRegisterModal() {
+            if (isUserAuthenticated) return showToast("Already logged in");
+            openModal('registerModal');
+        }
+
         async function handleRegSendOTP() {
             const email = document.getElementById('reg-email').value;
-            if (!email) return showToast("Enter your email");
-            const result = await apiPost('sendOTP', { email });
-            if (result && result.success) {
+            if (!email) return showToast("Enter email");
+            const res = await apiPost('sendOTP', { email, mode: 'registration' });
+            if (res && res.success) {
                 document.getElementById('reg-step-1').style.display = 'none';
                 document.getElementById('reg-step-2').style.display = 'block';
             }
         }
 
         async function doRegister() {
-            const email = document.getElementById('reg-email').value;
-            const username = document.getElementById('reg-user').value;
-            const password = document.getElementById('reg-pass').value;
-            const otp = document.getElementById('reg-otp').value;
-            const result = await apiPost('registerUser', { email, username, password, otp });
-            if (result && result.success) { closeModal('registerModal'); openModal('loginModal'); }
+            const email = document.getElementById('reg-email').value, user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value, otp = document.getElementById('reg-otp').value;
+            if (await apiPost('registerUser', { email, username: user, password: pass, otp })) {
+                closeModal('registerModal'); openModal('loginModal');
+            }
+        }
+
+        async function handleResetSendOTP() {
+            const email = document.getElementById('reset-email').value;
+            if (!email) return showToast("Enter email");
+            if (await apiPost('sendResetOTP', { email })) switchLoginStep('reset-2');
+        }
+
+        async function doResetPassword() {
+            const email = document.getElementById('reset-email').value, otp = document.getElementById('reset-otp').value, newPass = document.getElementById('reset-new-pass').value;
+            const res = await apiPost('resetPassword', { email, otp, newPass });
+            if (res && res.success) {
+                document.getElementById('recovered-username').textContent = res.username || "Unknown";
+                switchLoginStep('reset-success');
+            }
         }
 
         async function updateDict() {
-            const b = document.getElementById('dict-ben').value;
-            const m = document.getElementById('dict-mee').value;
-            const p = document.getElementById('dict-pass').value;
-            if (p !== "2025") return showToast("Wrong passcode");
-            const res = await apiPost('updateDictionary', { bengali: b, meetei: m });
-            if (res && res.success) { fetchDictionary(); closeModal('settingsModal'); }
+            const b = document.getElementById('dict-ben').value, m = document.getElementById('dict-mee').value, p = document.getElementById('dict-pass').value;
+            if (p !== "2025") return showToast("Wrong PIN");
+            if (await apiPost('updateDictionary', { bengali: b, meetei: m })) { fetchDictionary(); closeModal('settingsModal'); }
         }
 
         function updateKeyboardOptions() {
             const lang = document.getElementById('type-lang').value;
             const sel = document.getElementById('kb-layout');
             sel.style.display = lang === 'english' ? 'none' : 'inline-block';
-            if (lang === 'bengali') sel.innerHTML = '<option value="Sample Bengali">Sample Bengali</option><option value="Modular Bengali">Modular Bengali</option>';
-            else if (lang === 'meetei') sel.innerHTML = '<option value="Sample Meetei Mayek">Sample Meetei Mayek</option><option value="Modular Meetei Mayek">Modular Meetei Mayek</option>';
-            
-            if (lang === 'english') {
-                keymap = {};
-            } else {
-                fetchKeymap(sel.value);
-            }
+            if (lang === 'english') { keymap = {}; if (document.getElementById('kb-map').style.display === 'block') renderKeys(); }
+            else if (lang === 'bengali') { sel.innerHTML = '<option value="Smpl_Bengali">Smpl_Bengali</option><option value="Modular Bengali">Modular Bengali</option>'; fetchKeymap(sel.value); }
+            else if (lang === 'meetei') { sel.innerHTML = '<option value="Smpl_Meetei Mayek">Smpl_Meetei Mayek</option><option value="Modular Meetei Mayek">Modular Meetei Mayek</option>'; fetchKeymap(sel.value); }
         }
 
         function toggleKeyboardMap() {
@@ -1114,69 +1160,48 @@
         function renderKeys() {
             const grid = document.getElementById('kb-grid');
             grid.innerHTML = "";
-            ["~@$%", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM","qwertyuiop", "asdfghjkl", "zxcvbnm"].forEach(r => {
+            const rows = ["~@$%", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM","qwertyuiop", "asdfghjkl", "zxcvbnm"];
+            rows.forEach(r => {
                 const div = document.createElement('div'); div.className = 'kb-row';
-                r.split('').forEach(k => { div.innerHTML += `<div class="kb-key"><span>${k}</span><span class="char">${keymap[k] || ''}</span></div>`; });
-                grid.appendChild(div);
+                let valid = false;
+                r.split('').forEach(k => { 
+                    if (keymap && keymap[k]) {
+                        div.innerHTML += `<div class="kb-key"><span>${k}</span><span class="char">${keymap[k]}</span></div>`;
+                        valid = true;
+                    }
+                });
+                if (valid) grid.appendChild(div);
             });
+            if (grid.innerHTML === "") grid.innerHTML = "<div style='text-align:center; padding: 20px; color: #94a3b8;'>No mapped characters.</div>";
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function resetRegisterModal() { document.getElementById('reg-step-1').style.display = 'block'; document.getElementById('reg-step-2').style.display = 'none'; }
         function switchLoginStep(step) {
-            document.getElementById('login-step-main').style.display = step === 'main' ? 'block' : 'none';
-            document.getElementById('login-step-reset-1').style.display = step === 'reset-step-1' ? 'block' : 'none';
-            document.getElementById('login-step-reset-2').style.display = step === 'reset-step-2' ? 'block' : 'none';
-        }
-
-        async function handleResetSendOTP() {
-            const email = document.getElementById('reset-email').value;
-            if (!email) return showToast("Enter registered email");
-            const res = await apiPost('sendResetOTP', { email });
-            if (res && res.success) { switchLoginStep('reset-step-2'); showToast("Reset code sent"); }
-        }
-
-        async function doResetPassword() {
-            const email = document.getElementById('reset-email').value;
-            const otp = document.getElementById('reset-otp').value;
-            const newPass = document.getElementById('reset-new-pass').value;
-            const res = await apiPost('resetPassword', { email, otp, newPass });
-            if (res && res.success) { switchLoginStep('main'); closeModal('loginModal'); }
+            ['main', 'reset-1', 'reset-2', 'reset-success'].forEach(s => {
+                const el = document.getElementById(`login-step-${s}`);
+                if (el) el.style.display = (step === s) ? 'block' : 'none';
+            });
         }
 
         function exportToDoc() {
-            const pages = document.querySelectorAll('.page-content-area');
-            let fullHTMLContent = "";
-            pages.forEach((area) => {
-                fullHTMLContent += `<div>${area.innerHTML}</div><br style="page-break-before:always; clear:both">`;
-            });
-            if (!fullHTMLContent.trim()) {
-                showToast("Document is empty");
-                return;
-            }
-            const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'><style>body { font-family: "Calibri", sans-serif; }</style></head>
-            <body>${fullHTMLContent}</body></html>`;
-            const blob = new Blob(['\ufeff', header], { type: 'application/msword;charset=utf-8' });
+            let html = "";
+            document.querySelectorAll('.page-content-area').forEach(a => html += `<div>${a.innerHTML}</div><br style="page-break-before:always">`);
+            const blob = new Blob(['\ufeff', `<html><head><meta charset='utf-8'></head><body>${html}</body></html>`], { type: 'application/msword' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'Manipuri_Document.doc';
-            document.body.appendChild(link);
+            link.download = 'Manipuri_Doc.doc';
             link.click();
-            document.body.removeChild(link);
-            showToast("Document downloaded");
         }
 
         function showToast(m) { 
             const t = document.getElementById('toast'); 
             t.textContent = m; t.style.display = 'block'; 
-            if (m !== "Processing...") setTimeout(() => { t.style.display = 'none'; }, 3000); 
+            if (m !== "Processing...") setTimeout(() => t.style.display = 'none', 3000); 
         }
 
         window.onload = () => { fetchDictionary(); startPreviewTimer(); initTypingTool(); };
     </script>
 </body>
 </html>
-
-
