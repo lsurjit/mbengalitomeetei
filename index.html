@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -549,7 +550,7 @@
         </div>
         <div class="header-center">
             <h1 class="header-title">Manipuri Script Utility</h1>
-            <p class="header-subtitle" id="trans-label">Bengali to Meetei Mayek</p>
+            <p class="header-subtitle" id="trans-label">Bengali to Meetei Mayek V.2.2</p>
         </div>
 
         <div class="header-right-side">
@@ -558,7 +559,7 @@
                 <button class="tool-btn" onclick="switchView('typingToolView')">Typing Tool</button>
                 <button class="tool-btn" onclick="openModal('settingsModal')">Settings</button>
             </div>
-            <button id="buy-plan-btn" class="auth-btn auth-btn-premium" onclick="showToast('Loading Plans...')">👑 Upgrade</button>
+            <button id="buy-plan-btn" class="auth-btn auth-btn-premium" onclick="openModal('upgradeModal')">👑 Upgrade</button>
         </div>
     </header>
 
@@ -700,6 +701,20 @@
     <input type="file" id="file-open-input" style="display:none" accept=".txt,.meetei" onchange="handleFileOpen(event)">
 
     <!-- MODALS -->
+    <div id="upgradeModal" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="text-align: center; padding: 1rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚙️</div>
+                <h3 style="margin: 0 0 1rem 0; font-weight: 800; color: var(--text);">Account Upgrade</h3>
+                <p style="color: #64748b; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem;">
+                    Please contact Technical Support between 9:00 AM and 4:00 PM.
+                </p>
+                <button class="login-submit" onclick="closeModal('upgradeModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div id="login-step-main">
@@ -716,7 +731,7 @@
                     <input type="password" id="pass" class="form-input" placeholder="********" onkeydown="if(event.key==='Enter') doLogin()">
                 </div>
                 <span class="forgot-link" onclick="switchLoginStep('reset-1')">Forgot Password?</span>
-                <button class="login-submit" onclick="doLogin()">Sign In</button>
+                <button class="login-submit" id="login-btn-final" onclick="doLogin()">Sign In</button>
                 <p id="login-to-reg-prompt" style="text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 1rem;">
                     Don't have an account? <span style="color: var(--primary); cursor: pointer; font-weight: 600;" onclick="closeModal('loginModal'); openRegisterModal()">Create one</span>
                 </p>
@@ -801,15 +816,21 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyO3XHVrfXZgwwML9QoDc1OhVkEoREGlvWfbf2JMgE6d7BrFA9fU5cwOF25xwYz7vCg5Q/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTk1HJ8v8i2Hv2dUX7KgiI7H922zcMT2ax0JlNK48OCBz_bg6KRvPEE-xS8EYsRM_Seg/exec";
+        
         let dictionary = [];
         let keymap = {};
-        let previewTimeLeft = 300;
+        let previewTimeLeft = 300; 
         let previewInterval = null;
         let isUserAuthenticated = false;
         let currentFileName = "Untitled.txt";
+        
+        // --- MULTI-LOGIN PREVENTION STATE ---
+        let currentSessionId = crypto.randomUUID();
+        let loggedInUser = null;
+        let sessionCheckInterval = null;
 
-        // Shortcut Handlers
+        // --- CORE UI HANDLERS ---
         window.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey)) {
                 if (e.key.toLowerCase() === 'a') {
@@ -908,30 +929,19 @@
             
             contentArea.onkeydown = (e) => {
                 const currentLang = document.getElementById('type-lang').value;
-                
-                // 1. Allow functional/control keys always
                 const controlKeys = ['Backspace', 'Enter', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Delete', 'Home', 'End', 'Escape', 'Control', 'Shift', 'Alt', 'Meta'];
                 if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
                     if (e.key === 'Backspace') handleBackspaceNavigation(e, page, contentArea);
                     return;
                 }
-
-                // 2. Space is always allowed
                 if (e.key === ' ') return;
-
-                // 3. For Transliteration Mode (Bengali/Meetei)
                 if (currentLang !== 'english') {
-                    e.preventDefault(); // Stop default typing
-                    
-                    // Check if the key exists in the keymap (Visual Keyboard check)
+                    e.preventDefault(); 
                     const mapping = keymap[e.key];
                     if (mapping !== undefined && mapping !== null && mapping !== "") {
                         document.execCommand('insertText', false, mapping);
-                    } else {
-                        // Character is NOT in the Sheet/Keyboard - Silently block it
                     }
                 } 
-                // 4. For English mode, allow standard typing (since it uses system keyboard)
             };
 
             contentArea.oninput = () => {
@@ -999,7 +1009,8 @@
             if (id === 'typingToolView') initTypingTool();
         }
 
-        // API & Auth
+        // --- DATA HANDLING & API INTERACTION ---
+
         async function apiPost(action, payload) {
             showToast("Processing...");
             try {
@@ -1008,9 +1019,29 @@
                     body: JSON.stringify({ action, payload })
                 });
                 const result = await response.json();
-                if (result.success) { showToast(result.message || "Success!"); return result; }
-                else { showToast(result.message || "Action failed"); return result; }
-            } catch (e) { showToast("Error processing request"); return null; }
+                
+                if (result.success) {
+                    showToast(result.message || "Success!");
+                    return result;
+                } else {
+                    showToast(result.message || "Action failed");
+                    return result;
+                }
+            } catch (e) {
+                console.error("API Error:", e);
+                showToast("Connection Error.");
+                return null;
+            }
+        }
+
+        async function apiGet(params) {
+            const query = new URLSearchParams(params).toString();
+            try {
+                const response = await fetch(`${SCRIPT_URL}?${query}`);
+                return await response.json();
+            } catch (e) {
+                return null;
+            }
         }
 
         function startPreviewTimer() {
@@ -1026,34 +1057,50 @@
 
         function showlockOverlay(type) {
             const overlay = document.getElementById('lockOverlay');
+            const emoji = document.getElementById('lock-emoji');
+            const title = document.getElementById('lock-title');
+            const msg = document.getElementById('lock-message');
+            const actions = document.getElementById('lock-actions');
+
             if (type === "expired") {
-                document.getElementById('lock-emoji').textContent = "⌛";
-                document.getElementById('lock-title').textContent = "Plan Expired";
-                document.getElementById('lock-message').textContent = "Your plan has ended. To upgrade your plan and get full access, please contact the support team.";
-                document.getElementById('lock-actions').style.display = "none"; 
+                emoji.textContent = "⌛";
+                title.textContent = "Plan Expired";
+                msg.textContent = "Your plan has ended. To upgrade your plan and get full access, please contact the support team.";
+                actions.style.display = "none"; 
+            } else if (type === "active") {
+                emoji.textContent = "🚫";
+                title.textContent = "Session Active";
+                msg.textContent = "User already active. Please try another user.";
+                actions.innerHTML = `<button class="login-submit" onclick="location.reload()">Back to Home</button>`;
+            } else if (type === "kicked") {
+                emoji.textContent = "⚠️";
+                title.textContent = "Logged Out";
+                msg.textContent = "You have been logged out because this account was logged in from another device. If this was not you, please reset your password immediately.";
+                actions.innerHTML = `<button class="login-submit" onclick="location.reload()">Refresh App</button>`;
             }
+            
             overlay.style.display = 'flex';
             switchView('conversionView');
             document.getElementById('tool-buttons').style.display = 'none';
         }
 
         async function fetchDictionary() {
-            try {
-                const r = await fetch(`${SCRIPT_URL}?action=getDictionary`);
-                dictionary = await r.json();
+            const data = await apiGet({ action: 'getDictionary' });
+            if (data) {
+                dictionary = data;
                 handleConversion();
-            } catch (e) {}
+            }
         }
 
         async function fetchKeymap(name) {
             if (!name || name === 'english') { keymap = {}; return; }
             showToast("Loading keyboard...");
-            try {
-                const r = await fetch(`${SCRIPT_URL}?type=keymap&sheetName=${encodeURIComponent(name)}`);
-                keymap = await r.json();
+            const data = await apiGet({ type: 'keymap', sheetName: name });
+            if (data) {
+                keymap = data;
                 if (document.getElementById('kb-map').style.display === 'block') renderKeys();
                 showToast("Keyboard ready");
-            } catch (e) {}
+            }
         }
 
         function handleConversion() {
@@ -1065,7 +1112,7 @@
             let res = txt;
             sorted.forEach(item => {
                 const s = String(item[iL] || ""), t = String(item[oL] || "");
-                if (s && t) res = res.replace(new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), t);
+                if (s && t) res = res.split(s).join(t); 
             });
             out.value = res;
         }
@@ -1079,13 +1126,26 @@
         async function doLogin() {
             const user = document.getElementById('user').value, pass = document.getElementById('pass').value;
             if (!user || !pass) return showToast("Enter credentials");
-            const res = await apiPost('loginUser', { user, pass });
+            
+            const res = await apiPost('loginUser', { 
+                user, 
+                pass, 
+                session_id: currentSessionId 
+            });
+            
             if (res && res.success) {
                 const exp = res.trial_end_date ? new Date(res.trial_end_date) : null;
                 const diff = exp ? Math.ceil((exp - new Date()) / 86400000) : -1;
-                if (exp && diff <= 0) { showlockOverlay("expired"); return; }
+                
+                if (exp && diff <= 0) { 
+                    showlockOverlay("expired"); 
+                    return; 
+                }
+                
                 isUserAuthenticated = true;
+                loggedInUser = user;
                 clearInterval(previewInterval);
+                
                 document.getElementById('logged-out-auth').style.display = 'none';
                 document.getElementById('logged-in-user-area').style.display = 'flex';
                 document.getElementById('display-user-name').textContent = res.user || user;
@@ -1094,7 +1154,29 @@
                 document.getElementById('lockOverlay').style.display = 'none';
                 document.getElementById('header-reg-btn').style.display = 'none';
                 closeModal('loginModal');
+
+                startHeartbeat();
+            } else if (res && res.message === "User already active") {
+                showToast("User already active. Please try another user.");
+                showlockOverlay("active");
             }
+        }
+
+        function startHeartbeat() {
+            if (sessionCheckInterval) clearInterval(sessionCheckInterval);
+            sessionCheckInterval = setInterval(async () => {
+                if (!loggedInUser) return;
+                const check = await apiGet({ 
+                    action: 'checkSession', 
+                    user: loggedInUser, 
+                    session_id: currentSessionId 
+                });
+                if (check && !check.valid) {
+                    clearInterval(sessionCheckInterval);
+                    isUserAuthenticated = false;
+                    showlockOverlay("kicked");
+                }
+            }, 10000); // Check every 10 seconds
         }
 
         function openRegisterModal() {
@@ -1105,7 +1187,7 @@
         async function handleRegSendOTP() {
             const email = document.getElementById('reg-email').value;
             if (!email) return showToast("Enter email");
-            const res = await apiPost('sendOTP', { email, mode: 'registration' });
+            const res = await apiPost('sendOTP', { email });
             if (res && res.success) {
                 document.getElementById('reg-step-1').style.display = 'none';
                 document.getElementById('reg-step-2').style.display = 'block';
@@ -1113,21 +1195,29 @@
         }
 
         async function doRegister() {
-            const email = document.getElementById('reg-email').value, user = document.getElementById('reg-user').value;
-            const pass = document.getElementById('reg-pass').value, otp = document.getElementById('reg-otp').value;
+            const email = document.getElementById('reg-email').value;
+            const user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value;
+            const otp = document.getElementById('reg-otp').value;
+            
             if (await apiPost('registerUser', { email, username: user, password: pass, otp })) {
-                closeModal('registerModal'); openModal('loginModal');
+                closeModal('registerModal'); 
+                openModal('loginModal');
             }
         }
 
         async function handleResetSendOTP() {
             const email = document.getElementById('reset-email').value;
             if (!email) return showToast("Enter email");
-            if (await apiPost('sendResetOTP', { email })) switchLoginStep('reset-2');
+            const res = await apiPost('sendResetOTP', { email });
+            if (res && res.success) switchLoginStep('reset-2');
         }
 
         async function doResetPassword() {
-            const email = document.getElementById('reset-email').value, otp = document.getElementById('reset-otp').value, newPass = document.getElementById('reset-new-pass').value;
+            const email = document.getElementById('reset-email').value;
+            const otp = document.getElementById('reset-otp').value;
+            const newPass = document.getElementById('reset-new-pass').value;
+            
             const res = await apiPost('resetPassword', { email, otp, newPass });
             if (res && res.success) {
                 document.getElementById('recovered-username').textContent = res.username || "Unknown";
@@ -1136,18 +1226,33 @@
         }
 
         async function updateDict() {
-            const b = document.getElementById('dict-ben').value, m = document.getElementById('dict-mee').value, p = document.getElementById('dict-pass').value;
+            const b = document.getElementById('dict-ben').value;
+            const m = document.getElementById('dict-mee').value;
+            const p = document.getElementById('dict-pass').value;
+            
             if (p !== "2025") return showToast("Wrong PIN");
-            if (await apiPost('updateDictionary', { bengali: b, meetei: m })) { fetchDictionary(); closeModal('settingsModal'); }
+            
+            const res = await apiPost('updateDictionary', { bengali: b, meetei: m });
+            if (res && res.success) { 
+                fetchDictionary(); 
+                closeModal('settingsModal'); 
+            }
         }
 
         function updateKeyboardOptions() {
             const lang = document.getElementById('type-lang').value;
             const sel = document.getElementById('kb-layout');
             sel.style.display = lang === 'english' ? 'none' : 'inline-block';
-            if (lang === 'english') { keymap = {}; if (document.getElementById('kb-map').style.display === 'block') renderKeys(); }
-            else if (lang === 'bengali') { sel.innerHTML = '<option value="Smpl_Bengali">Smpl_Bengali</option><option value="Modular Bengali">Modular Bengali</option>'; fetchKeymap(sel.value); }
-            else if (lang === 'meetei') { sel.innerHTML = '<option value="Smpl_Meetei Mayek">Smpl_Meetei Mayek</option><option value="Modular Meetei Mayek">Modular Meetei Mayek</option>'; fetchKeymap(sel.value); }
+            if (lang === 'english') { 
+                keymap = {}; 
+                if (document.getElementById('kb-map').style.display === 'block') renderKeys(); 
+            } else if (lang === 'bengali') { 
+                sel.innerHTML = '<option value="Smpl_bengali">Smpl_Bengali</option><option value="Modular Bengali">Modular Bengali</option>'; 
+                fetchKeymap(sel.value); 
+            } else if (lang === 'meetei') { 
+                sel.innerHTML = '<option value="Smpl_Meetei Mayek">Smpl_Meetei Mayek</option><option value="Modular Meetei Mayek">Modular Meetei Mayek</option>'; 
+                fetchKeymap(sel.value); 
+            }
         }
 
         function toggleKeyboardMap() {
@@ -1159,9 +1264,10 @@
         function renderKeys() {
             const grid = document.getElementById('kb-grid');
             grid.innerHTML = "";
-            const rows = ["`1234567890-=", "QWERTYUIOP]{|", "ASDFGHJKL:'", "ZXCVBNM<>?","~!@#$%^&*()_+","qwertyuiop{}|", "asdfghjkl:'", "zxcvbnm,./"];
+            const rows = ["`1234567890-=", "QWERTYUIOP{]|", "ASDFGHJKL:'", "ZXCVBNM<>?","~!@#$%^&*()_+","qwertyuiop{}|", "asdfghjkl:'", "zxcvbnm,./"];
             rows.forEach(r => {
-                const div = document.createElement('div'); div.className = 'kb-row';
+                const div = document.createElement('div'); 
+                div.className = 'kb-row';
                 let valid = false;
                 r.split('').forEach(k => { 
                     if (keymap && keymap[k]) {
@@ -1176,7 +1282,10 @@
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function resetRegisterModal() { document.getElementById('reg-step-1').style.display = 'block'; document.getElementById('reg-step-2').style.display = 'none'; }
+        function resetRegisterModal() { 
+            document.getElementById('reg-step-1').style.display = 'block'; 
+            document.getElementById('reg-step-2').style.display = 'none'; 
+        }
         function switchLoginStep(step) {
             ['main', 'reset-1', 'reset-2', 'reset-success'].forEach(s => {
                 const el = document.getElementById(`login-step-${s}`);
@@ -1200,7 +1309,11 @@
             if (m !== "Processing...") setTimeout(() => t.style.display = 'none', 3000); 
         }
 
-        window.onload = () => { fetchDictionary(); startPreviewTimer(); initTypingTool(); };
+        window.onload = () => { 
+            fetchDictionary(); 
+            startPreviewTimer(); 
+            initTypingTool(); 
+        };
     </script>
 </body>
 </html>
