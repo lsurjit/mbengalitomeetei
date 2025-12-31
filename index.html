@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -864,18 +862,24 @@
             <div class="upload-card" onclick="document.getElementById('extractor-file-input').click()">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
                 <h3 id="extractor-filename" style="margin: 0 0 0.5rem 0;">Click to upload Image or PDF</h3>
-                <p style="color: #64748b; margin: 0;">Supports PNG, JPG, and multi-page PDF files with a maximum of 5 pages.*Nb. </p>
+                <p style="color: #64748b; margin: 0;">Supports PNG, JPG, and PDF files. Use for Bengali/Manipuri scripts.</p>
                 <input type="file" id="extractor-file-input" style="display:none" accept="image/*,application/pdf" onchange="handleExtractionFileSelect(event)">
             </div>
 
             <button class="login-submit" id="extract-trigger-btn" style="max-width: 200px; margin-bottom: 2rem;" onclick="processTextExtraction()">Convert to Text</button>
 
             <div class="extraction-result-box">
-                <label class="form-label">Extracted Text Content</label>
-                <textarea id="extraction-result-text" class="extraction-textarea" placeholder="Extracted text will appear here..."></textarea>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                    <button class="auth-btn" onclick="copyExtractionToClipboard()">Copy to Clipboard</button>
-                    <button class="login-submit" style="background: var(--success); width: auto; padding-inline: 2rem;" onclick="insertExtractedTextToEditor()">Insert into Document</button>
+                <div id="ocr-loading" class="hidden" style="text-align:center; padding: 20px; display:none;">
+                   <div class="status-dot" style="margin: 0 auto 10px;"></div>
+                   <span>Processing Image/PDF...</span>
+                </div>
+                <div id="ocr-result-container">
+                    <label class="form-label">Extracted Text Content</label>
+                    <textarea id="extraction-result-text" class="extraction-textarea" placeholder="Extracted text will appear here..."></textarea>
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                        <button class="auth-btn" onclick="copyExtractionToClipboard()">Copy to Clipboard</button>
+                        <button class="login-submit" style="background: var(--success); width: auto; padding-inline: 2rem;" onclick="insertExtractedTextToEditor()">Insert into Document</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -999,8 +1003,7 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTk1HJ8v8i2Hv2dUX7KgiI7H922zcMT2ax0JlNK48OCBz_bg6KRvPEE-xS8EYsRM_Seg/exec";
-        const apiKey = "";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo2rZU-abGhiliszXBocGnR9zT7ZbgECIUC0oBzTINql032p_25IKzjiZ4r1dH8--cPQ/exec";
         
         let dictionary = [];
         let keymap = {};
@@ -1235,12 +1238,10 @@
         }
 
         function applyTypingStyle(prop, val) {
-            // Apply style to the selection if possible, otherwise entire page
             const sel = window.getSelection();
             if (sel.rangeCount > 0 && !sel.isCollapsed) {
                 document.execCommand('styleWithCSS', false, true);
                 if (prop === 'fontSize') {
-                    // execCommand fontSize uses 1-7. We'll set style directly on spans for precision
                     const span = document.createElement('span');
                     span.style.fontSize = val;
                     const range = sel.getRangeAt(0);
@@ -1254,10 +1255,7 @@
         }
 
         function setTextAlignment(cmd) {
-            // Standard behavior: alignment affects the current paragraph or selection
             document.execCommand(cmd, false, null);
-            
-            // UI Feedback
             document.querySelectorAll('.align-btn').forEach(btn => btn.classList.remove('active'));
             const btnMap = {
                 'justifyLeft': 'align-left',
@@ -1275,7 +1273,7 @@
             if (id !== 'typingToolView') document.getElementById('findReplacePopup').classList.remove('active');
         }
 
-        // --- EXTRACTION LOGIC ---
+        // --- EXTRACTION LOGIC (INTEGRATED FRONTEND HTML LOGIC) ---
 
         function handleExtractionFileSelect(e) {
             const file = e.target.files[0];
@@ -1287,63 +1285,60 @@
         async function processTextExtraction() {
             const fileInput = document.getElementById('extractor-file-input');
             const file = fileInput.files[0];
-            const resultArea = document.getElementById('extraction-result-text');
-            const btn = document.getElementById('extract-trigger-btn');
-
+            
+            if (!isUserAuthenticated) return openModal('loginModal');
             if (!file) return showToast("Please select a file first");
 
-            btn.disabled = true;
-            btn.innerText = "Extracting...";
-            resultArea.value = "Analyzing Please wait...";
+            document.getElementById('ocr-loading').style.display = 'block';
+            document.getElementById('ocr-result-container').style.display = 'none';
 
-            try {
-                const base64 = await toBase64(file);
-                const extractedText = await callGeminiOCR(base64, file.type);
-                resultArea.value = extractedText || "No text could be extracted.";
-                showToast("Extraction Successful");
-            } catch (err) {
-                resultArea.value = "Error: " + err.message;
-                showToast("Extraction Failed");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Convert to Text";
-            }
-        }
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64Data = reader.result.split(',')[1];
+                const mimeType = file.type;
 
-        function toBase64(file) {
-            return new Promise((res) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => res(reader.result.split(',')[1]);
-            });
-        }
+                const payload = {
+                    action: 'proxyGemini',
+                    payload: {
+                        contents: [{
+                            parts: [
+                                { text: "Extract text from this document. Output only the extracted text. Maintain Bengali/Manipuri script." },
+                                {
+                                    inline_data: {
+                                        mime_type: mimeType,
+                                        data: base64Data
+                                    }
+                                }
+                            ]
+                        }]
+                    }
+                };
 
-        async function callGeminiOCR(base64Data, mimeType) {
-            const payload = {
-                contents: [{
-                    parts: [
-                        { text: "Extract all text exactly as it appears in this document/image. Maintain the structural layout and line breaks. If it is in Bengali or Manipuri script, transcribe it accurately." },
-                        { inlineData: { mimeType: mimeType, data: base64Data } }
-                    ]
-                }]
-            };
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            for (let i = 0; i < 5; i++) {
                 try {
-                    const response = await fetch(url, {
+                    const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
                         body: JSON.stringify(payload)
                     });
-                    const data = await response.json();
-                    return data.candidates?.[0]?.content?.parts?.[0]?.text;
-                } catch (e) {
-                    const delay = Math.pow(2, i) * 1000;
-                    await new Promise(r => setTimeout(r, delay));
+                    
+                    const result = await response.json();
+
+                    document.getElementById('ocr-loading').style.display = 'none';
+                    document.getElementById('ocr-result-container').style.display = 'block';
+
+                    if (result.success) {
+                        document.getElementById('extraction-result-text').value = result.text;
+                        showToast("Extraction Successful");
+                    } else {
+                        showToast(result.message || "Extraction Error.");
+                    }
+                } catch (err) {
+                    document.getElementById('ocr-loading').style.display = 'none';
+                    document.getElementById('ocr-result-container').style.display = 'block';
+                    showToast("Server Response Handled");
+                    console.log("Extraction error details:", err);
                 }
-            }
-            throw new Error("Failed to reach service after several attempts.");
+            };
+            reader.readAsDataURL(file);
         }
 
         function copyExtractionToClipboard() {
@@ -1682,4 +1677,3 @@
     </script>
 </body>
 </html>
-
