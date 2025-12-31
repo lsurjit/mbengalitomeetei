@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -389,6 +391,87 @@
             transform: scale(1.1) rotate(180deg); 
             background: #005a9e;
         }
+        
+        /* Find Replace Popup Styles */
+        .find-replace-popup {
+            display: none;
+            position: fixed;
+            top: 130px;
+            right: 40px;
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+            z-index: 2000;
+            width: 280px;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .find-replace-popup.active {
+            display: flex;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .popup-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .popup-input {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .popup-input:focus {
+            border-color: var(--primary);
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 5px;
+        }
+
+        .popup-btn {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-find { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-replace { background: var(--primary); color: white; border: none; }
+        .btn-replace-all { background: var(--success); color: white; border: none; }
+
+        .btn-find:hover { background: #e2e8f0; }
+        .btn-replace:hover { opacity: 0.9; }
+        .btn-replace-all:hover { opacity: 0.9; }
 
         /* Extraction Page Styles */
         #extractionView {
@@ -574,11 +657,12 @@
             .card-container:first-child { border-right: none; border-bottom: 1px solid var(--border); }
             .btn-swap-wrapper { transform: translate(-50%, -50%) rotate(90deg); }
             .page-status-popup { left: 10px; bottom: 10px; }
+            .find-replace-popup { right: 10px; left: 10px; width: auto; }
         }
 
         @media print {
             body, .typing-workspace { background: white !important; overflow: visible !important; display: block !important; padding: 0 !important; }
-            header, .office-ribbon, .keyboard-layout-container, #lockOverlay, #toast, .page-status-popup { display: none !important; }
+            header, .office-ribbon, .keyboard-layout-container, #lockOverlay, #toast, .page-status-popup, .find-replace-popup { display: none !important; }
             .word-page { box-shadow: none !important; margin: 0 !important; page-break-after: always !important; border: none !important; }
         }
     </style>
@@ -603,7 +687,7 @@
         </div>
         <div class="header-center">
             <h1 class="header-title">Manipuri Script Utility</h1>
-            <p class="header-subtitle" id="trans-label">Bengali to Meetei Mayek V.2.3</p>
+            <p class="header-subtitle" id="trans-label">Bengali to Meetei Mayek V.2.4</p>
         </div>
             
         <div class="header-right-side">
@@ -667,19 +751,23 @@
     <div id="typingToolView" class="view-container">
         <div class="office-ribbon">
             <div class="ribbon-group">
-                <span class="ribbon-label">File Management</span>
+                <span class="ribbon-label"></span>
                 <button class="ribbon-btn" onclick="openFile()" title="Open File (Ctrl+O)">📂 Open</button>
                 <button class="ribbon-btn" onclick="saveFile()" title="Save File (Ctrl+S)">💾 Save</button>
             </div>
 
             <div class="ribbon-group">
-                <span class="ribbon-label">History</span>
+                <span class="ribbon-label"></span>
                 <button class="ribbon-btn" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
                 </button>
                 <button class="ribbon-btn" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg>
                 </button>
+            </div>
+            <div class="ribbon-group">
+                <span class="ribbon-label"> </span>
+                <button class="ribbon-btn" onclick="toggleFindReplacePopup()" title="Find & Replace (Ctrl+F)">🔍 </button>
             </div>
 
             <div class="ribbon-group">
@@ -732,9 +820,24 @@
             <div class="ribbon-group" style="border-right: none; margin-left: auto;">
                 <button class="ribbon-btn" onclick="addNewTypingPage()" title="Add New Page">➕ Page</button>
                 <button class="ribbon-btn" onclick="exportToDoc()" style="background: var(--primary); color: white; font-weight: 600; padding: 0.5rem 1.25rem; border:none;">
-                    📄 Save .doc
+                    💾  Save As
                 </button>
                 <button class="ribbon-btn" onclick="window.print()">🖨️ Print</button>
+            </div>
+        </div>
+        
+        <!-- FIND REPLACE POPUP -->
+        <div id="findReplacePopup" class="find-replace-popup">
+            <div class="popup-header">
+                <span class="popup-title">Find & Replace</span>
+                <button class="popup-close" onclick="toggleFindReplacePopup()">&times;</button>
+            </div>
+            <input type="text" id="find-query" class="popup-input" placeholder="Find what...">
+            <input type="text" id="replace-query" class="popup-input" placeholder="Replace with...">
+            <div class="popup-actions">
+                <button class="popup-btn btn-find" onclick="findTextInEditor()">Find</button>
+                <button class="popup-btn btn-replace" onclick="replaceNext()">Replace</button>
+                <button class="popup-btn btn-replace-all" onclick="replaceAllText()">Replace All</button>
             </div>
         </div>
 
@@ -761,7 +864,7 @@
             <div class="upload-card" onclick="document.getElementById('extractor-file-input').click()">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
                 <h3 id="extractor-filename" style="margin: 0 0 0.5rem 0;">Click to upload Image or PDF</h3>
-                <p style="color: #64748b; margin: 0;">Supports PNG, JPG, and multi-page PDF files with a maximum of 5 pages.*NB: The Meetei Mayek script is not functioning correctly at the moment and will be updated soon.</p>
+                <p style="color: #64748b; margin: 0;">Supports PNG, JPG, and multi-page PDF files with a maximum of 5 pages.*Nb. </p>
                 <input type="file" id="extractor-file-input" style="display:none" accept="image/*,application/pdf" onchange="handleExtractionFileSelect(event)">
             </div>
 
@@ -897,7 +1000,7 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTk1HJ8v8i2Hv2dUX7KgiI7H922zcMT2ax0JlNK48OCBz_bg6KRvPEE-xS8EYsRM_Seg/exec";
-        const apiKey = "";
+        const apiKey = "AIzaSyAkeIDrbk4Iw6nyfOHKc80X0L8nGC3hRGo";
         
         let dictionary = [];
         let keymap = {};
@@ -981,6 +1084,56 @@
             link.download = fileName;
             link.click();
             showToast("File Saved");
+        }
+        // --- FIND & REPLACE LOGIC ---
+        function toggleFindReplacePopup() {
+            const popup = document.getElementById('findReplacePopup');
+            popup.classList.toggle('active');
+            if (popup.classList.contains('active')) {
+                document.getElementById('find-query').focus();
+            }
+        }
+
+        function findTextInEditor() {
+            const query = document.getElementById('find-query').value;
+            if (!query) return showToast("Enter text to find");
+            
+            if (!window.find(query, false, false, true)) {
+                window.getSelection().removeAllRanges();
+                if (!window.find(query, false, false, true)) {
+                    showToast("No matches found");
+                }
+            }
+        }
+
+        function replaceNext() {
+            const findQ = document.getElementById('find-query').value;
+            const replaceQ = document.getElementById('replace-query').value;
+            if (!findQ) return showToast("Enter text to find");
+            const sel = window.getSelection();
+            if (sel.toString().toLowerCase() === findQ.toLowerCase()) {
+                document.execCommand('insertText', false, replaceQ);
+                findTextInEditor();
+            } else {
+                findTextInEditor();
+            }
+        }
+
+        function replaceAllText() {
+            const findQ = document.getElementById('find-query').value;
+            const replaceQ = document.getElementById('replace-query').value;
+            if (!findQ) return showToast("Enter text to find");
+            const pages = document.querySelectorAll('.page-content-area');
+            let count = 0;
+            pages.forEach(p => {
+                const originalText = p.innerText;
+                const newText = originalText.split(findQ).join(replaceQ);
+                if (originalText !== newText) {
+                    count += (originalText.split(findQ).length - 1);
+                    p.innerText = newText;
+                }
+            });
+            showToast(`Replaced ${count} occurrences`);
         }
 
         // Typing Core
@@ -1119,6 +1272,7 @@
             document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if (id === 'typingToolView') initTypingTool();
+            if (id !== 'typingToolView') document.getElementById('findReplacePopup').classList.remove('active');
         }
 
         // --- EXTRACTION LOGIC ---
@@ -1290,6 +1444,7 @@
             overlay.style.display = 'flex';
             switchView('conversionView');
             document.getElementById('tool-buttons').style.display = 'none';
+            document.getElementById('Image/Pdf-reg-btn').style.display = 'none';
         }
 
         async function fetchDictionary() {
